@@ -21,3 +21,10 @@ class Config:
     MAIL_USE_TLS = os.getenv("MAIL_USE_TLS") is not None
     RECIPIENT_EMAIL = os.getenv("RECIPIENT_GMAIL")
     EMAIL_PASSWORD = os.getenv("GMAIL_PASSWORD")
+
+class TestConfig(Config):
+    TESTING = True
+    DEBUG = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///test.db'  # Using SQLite for testing
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SECRET_KEY = 'testsecretkey'
