@@ -3,6 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_cors import CORS
+import logging
+from logging.handlers import RotatingFileHandler
 
 from config import Config
 
@@ -30,6 +32,16 @@ def create_app(config=Config):
     # Register the authentication blueprint.
     from app.auth import bp as auth_bp
     flask_app.register_blueprint(auth_bp, url_prefix="/api")
+
+    # Register the main blueprint
+    from app.main import bp as main_bp
+    flask_app.register_blueprint(main_bp, url_prefix="/api")
+
+    # Setup logging
+    if not flask_app.debug:
+        handler = RotatingFileHandler('error.log', maxBytes=10240, backupCount=10)
+        handler.setLevel(logging.ERROR)
+        flask_app.logger.addHandler(handler)
 
     return flask_app
 
