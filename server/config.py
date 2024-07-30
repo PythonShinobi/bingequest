@@ -21,6 +21,8 @@ class Config:
     MAIL_USE_TLS = os.getenv("MAIL_USE_TLS") is not None
     RECIPIENT_EMAIL = os.getenv("RECIPIENT_GMAIL")
     EMAIL_PASSWORD = os.getenv("GMAIL_PASSWORD")
+    API_KEY = os.getenv("API_KEY")
+    ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
 
 class TestConfig(Config):
     TESTING = True
