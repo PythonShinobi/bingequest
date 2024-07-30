@@ -1,0 +1,19 @@
+/* Ensure the navbar is always at the top of the screen */
+.navbar {
+  position: fixed; /* Make sure the navbar is fixed at the top */
+  margin-bottom: 70px;
+  top: 0;
+  width: 100%;
+  z-index: 1100; /* Ensure it's above other content */
+}
+
+/* Ensure content below the navbar doesn't overlap */
+body {
+  margin-top: 60px; /* Adjust this value according to the height of your navbar */
+}
+
+/* Define styles for the active nav link */
+.navbar .active {
+  font-weight: bold;
+  color: #1976d2; /* Change to your desired active color */
+}
