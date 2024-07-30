@@ -36,8 +36,7 @@ const Navbar = () => {
   const handleLogout = async () => {
     try {
       await axios.get("/api/logout");
-      window.location.reload(); // Trigger a refresh.
-      navigate('/'); // Redirect to home page after logout.
+      window.location.href = "/"; // Redirect to home page immediately.
     } catch (error) {
       console.error('Error logging out:', error);
     }
