@@ -1,7 +1,0 @@
-.now-playing-container {
-  padding: 0 16px; 
-  margin-top: 80px;
-  margin-bottom: 80px;
-  top: 0;
-  z-index: 1100; /* Ensures the navbar is above other content */
-}
