@@ -3,29 +3,36 @@ import React, { useState } from "react";
 import axios from 'axios';
 import { NavLink, useNavigate } from "react-router-dom";
 import {
-  AppBar, 
-  Toolbar, 
-  Typography, 
-  Button, 
-  IconButton, 
-  Drawer, 
-  List, 
-  ListItem, 
-  ListItemText, 
-  Box, 
-  Container
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  IconButton,
+  Drawer,
+  List,
+  ListItem,
+  ListItemText,
+  Box,
+  Container,
+  Menu,
+  MenuItem
 } from "@mui/material";
 import MenuIcon from '@mui/icons-material/Menu';
 import PersonIcon from '@mui/icons-material/Person';
 import LoginIcon from '@mui/icons-material/Login';
 import HowToRegIcon from '@mui/icons-material/HowToReg';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
 import "./Navbar.css";
 import useIsAuthenticated from "../redux/authHook.js";
 
 const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [moviesMenuAnchor, setMoviesMenuAnchor] = useState(null);
+  const [tvShowsMenuAnchor, setTvShowsMenuAnchor] = useState(null);
+  const [popularPeopleMenuAnchor, setPopularPeopleMenuAnchor] = useState(null);
+
   const user = useIsAuthenticated();
   const navigate = useNavigate();  
 
@@ -46,14 +53,73 @@ const Navbar = () => {
     navigate("/profile");
   };
 
+  const handleMoviesMenuClick = (event) => {
+    setMoviesMenuAnchor(event.currentTarget);
+  };
+
+  const handleTvShowsMenuClick = (event) => {
+    setTvShowsMenuAnchor(event.currentTarget);
+  };
+
+  const handlePopularPeopleMenuClick = (event) => {
+    setPopularPeopleMenuAnchor(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setMoviesMenuAnchor(null);
+    setTvShowsMenuAnchor(null);
+    setPopularPeopleMenuAnchor(null);
+  };
+
   const drawerItems = (
     <Box
       sx={{ width: 250 }}
       role="presentation"
-      onClick={handleDrawerToggle}
-      onKeyDown={handleDrawerToggle}
+      onClick={(event) => event.stopPropagation()} // Prevent drawer toggle on item click
+      onKeyDown={(event) => event.stopPropagation()} // Prevent drawer toggle on item click
     >
       <List>
+        <ListItem onClick={handleMoviesMenuClick}>
+          <ListItemText primaryTypographyProps={{ sx: { color: 'black' } }} primary="Movies" />
+          <ArrowDropDownIcon />
+        </ListItem>
+        <Menu
+          anchorEl={moviesMenuAnchor}
+          open={Boolean(moviesMenuAnchor)}
+          onClose={handleMenuClose}
+        >
+          <MenuItem component={NavLink} to="/movies/popular">Popular</MenuItem>
+          <MenuItem component={NavLink} to="/movies/now-playing">Now Playing</MenuItem>
+          <MenuItem component={NavLink} to="/movies/upcoming">Upcoming</MenuItem>
+          <MenuItem component={NavLink} to="/movies/top-rated">Top Rated</MenuItem>
+        </Menu>
+        
+        <ListItem onClick={handleTvShowsMenuClick}>
+          <ListItemText primaryTypographyProps={{ sx: { color: 'black' } }} primary="TV Shows" />
+          <ArrowDropDownIcon />
+        </ListItem>
+        <Menu
+          anchorEl={tvShowsMenuAnchor}
+          open={Boolean(tvShowsMenuAnchor)}
+          onClose={handleMenuClose}
+        >
+          <MenuItem component={NavLink} to="/tv-shows/popular">Popular</MenuItem>
+          <MenuItem component={NavLink} to="/tv-shows/airing-today">Airing Today</MenuItem>
+          <MenuItem component={NavLink} to="/tv-shows/on-tv">On TV</MenuItem>
+          <MenuItem component={NavLink} to="/tv-shows/top-rated">Top Rated</MenuItem>
+        </Menu>
+
+        <ListItem onClick={handlePopularPeopleMenuClick}>
+          <ListItemText primaryTypographyProps={{ sx: { color: 'black' } }} primary="People" />
+          <ArrowDropDownIcon />
+        </ListItem>
+        <Menu
+          anchorEl={popularPeopleMenuAnchor}
+          open={Boolean(popularPeopleMenuAnchor)}
+          onClose={handleMenuClose}
+        >
+          <MenuItem component={NavLink} to="/people/popular">Popular People</MenuItem>          
+        </Menu>
         {!user && (
           <>
             <ListItem component={NavLink} to="/login">
@@ -95,10 +161,45 @@ const Navbar = () => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" component={NavLink} to="/" sx={{ flexGrow: 1, textDecoration: 'none', color: 'inherit' }}>
-            Movie Repo
+          <Typography variant="h5" component={NavLink} to="/" sx={{ flexGrow: 1, textDecoration: 'none', color: 'inherit' }}>
+            Movie Repository
           </Typography>
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, justifyContent: 'flex-end' }}>
+          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}>
+            <div className="dropdown">
+              <Button color="inherit" sx={{ m: 1 }}>
+                Movies
+              </Button>
+              <div className="dropdown-content">
+                <NavLink to="/movies/popular">Popular</NavLink>
+                <NavLink to="/movies/now-playing">Now Playing</NavLink>
+                <NavLink to="/movies/upcoming">Upcoming</NavLink>
+                <NavLink to="/movies/top-rated">Top Rated</NavLink>
+              </div>
+            </div>
+            <div className="dropdown">
+              <Button color="inherit" sx={{ m: 1 }}>
+                TV Shows
+              </Button>
+              <div className="dropdown-content">
+                <NavLink to="/tv-shows/popular">Popular</NavLink>
+                <NavLink to="/tv-shows/airing-today">Airing Today</NavLink>
+                <NavLink to="/tv-shows/on-tv">On TV</NavLink>
+                <NavLink to="/tv-shows/top-rated">Top Rated</NavLink>
+              </div>
+            </div>
+            <div className="dropdown">
+              <Button color="inherit" sx={{ m: 1 }}>
+                People
+              </Button>
+              <div className="dropdown-content">
+                <NavLink to="/people/popular">Popular People</NavLink>
+              </div>
+            </div>
+            <Button component={NavLink} to="/more" color="inherit" sx={{ m: 1 }} activeClassName="active">
+              More
+            </Button>
+          </Box>
+          <Box sx={{ display: { xs: 'none', md: 'flex' }, justifyContent: 'flex-end' }}>
             {!user && (
               <>
                 <Button component={NavLink} to="/login" color="inherit" sx={{ m: 1 }} activeClassName="active">
