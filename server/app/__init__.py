@@ -33,9 +33,9 @@ def create_app(config=Config):
     from app.auth import bp as auth_bp
     flask_app.register_blueprint(auth_bp, url_prefix="/api")
 
-    # Register the main blueprint
-    from app.main import bp as main_bp
-    flask_app.register_blueprint(main_bp, url_prefix="/api")
+    # Register the movie blueprint
+    from app.movie import bp as movie_bp
+    flask_app.register_blueprint(movie_bp, url_prefix="/api")
 
     # Setup logging
     if not flask_app.debug:
