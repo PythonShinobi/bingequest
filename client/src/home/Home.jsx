@@ -1,12 +1,13 @@
 // client/src/home/Home.jsx
 import React from "react";
 
-import "./Home.css";
 import Navbar from "../navbar/Navbar";
 
 const Home = () => {
   return (
-    <Navbar />
+    <div className="home-container">
+      <Navbar />
+    </div>
   );
 };
 
