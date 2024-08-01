@@ -7,12 +7,14 @@ import Register from './register/Register';
 import Login from './login/Login';
 import PopularMovies from './popular/Movie';
 import NewestReleases from './newest-releases/Movie';
+import TopRatedMovies from './top-rated/Movie';
 
 const MemoizedHome = memo(Home);
 const MemoizedRegister = memo(Register);
 const MemoizedLogin = memo(Login);
 const MemoizedPopularMovies = memo(PopularMovies);
-const MemoizedNewestReleases = memo(NewestReleases)
+const MemoizedNewestReleases = memo(NewestReleases);
+const MemoizedTopRatedMovies = memo(TopRatedMovies);
 
 const App = () => {
   return (
@@ -23,6 +25,7 @@ const App = () => {
         <Route path='/login' element={<MemoizedLogin />} />
         <Route path='/movies/popular' element={<MemoizedPopularMovies />} />
         <Route path='/movies/newest-releases' element={<MemoizedNewestReleases />} />
+        <Route path='/movies/top-rated' element={<MemoizedTopRatedMovies />} />
       </Routes>
     </BrowserRouter>
   );
