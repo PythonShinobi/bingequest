@@ -89,7 +89,7 @@ const Navbar = () => {
           onClose={handleMenuClose}
         >
           <MenuItem component={NavLink} to="/movies/popular">Popular</MenuItem>
-          <MenuItem component={NavLink} to="/movies/now-playing">Now Playing</MenuItem>
+          <MenuItem component={NavLink} to="/movies/newest-releases">Newest Releases</MenuItem>
           <MenuItem component={NavLink} to="/movies/upcoming">Upcoming</MenuItem>
           <MenuItem component={NavLink} to="/movies/top-rated">Top Rated</MenuItem>
         </Menu>
@@ -171,7 +171,7 @@ const Navbar = () => {
               </Button>
               <div className="dropdown-content">
                 <NavLink to="/movies/popular">Popular</NavLink>
-                <NavLink to="/movies/now-playing">Now Playing</NavLink>
+                <NavLink to="/movies/newest-releases">Newest Releases</NavLink>
                 <NavLink to="/movies/upcoming">Upcoming</NavLink>
                 <NavLink to="/movies/top-rated">Top Rated</NavLink>
               </div>
