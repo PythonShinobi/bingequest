@@ -39,8 +39,13 @@ def create_app(config=Config):
 
     # Setup logging
     if not flask_app.debug:
-        handler = RotatingFileHandler('error.log', maxBytes=10240, backupCount=10)
+        handler = RotatingFileHandler('error.log', maxBytes=10240, backupCount=0)
         handler.setLevel(logging.ERROR)
+        
+        # Set up a log formatter with timestamps
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        
         flask_app.logger.addHandler(handler)
 
     return flask_app
