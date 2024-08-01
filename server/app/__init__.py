@@ -37,6 +37,10 @@ def create_app(config=Config):
     from app.movie import bp as movie_bp
     flask_app.register_blueprint(movie_bp, url_prefix="/api")
 
+    # Register the tv show blueprint
+    from app.tv_show import bp as tv_show_bp
+    flask_app.register_blueprint(tv_show_bp, url_prefix="/api")
+
     # Setup logging
     if not flask_app.debug:
         handler = RotatingFileHandler('error.log', maxBytes=10240, backupCount=0)
