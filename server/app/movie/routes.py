@@ -43,37 +43,23 @@ def get_popular_movies():
     else:
         return jsonify({"error": "Unable to fetch data from TMDb"}), response.status_code
 
-@bp.route('/movies/newest-releases', methods=['GET'])
-def get_newest_releases():
+@bp.route('/movies/trending', methods=['GET'])    
+def get_trending_movies():
     token = Config.ACCESS_TOKEN
-    
-    # Get current date and calculate start and end of the month
-    now = datetime.now()
-    start_of_month = now.replace(day=1).strftime('%Y-%m-%d')
-    
-    # Compute end of the month
-    next_month = now.replace(day=28) + timedelta(days=4)  # This will definitely be in the next month
-    end_of_month = next_month - timedelta(days=next_month.day)  # Get the last day of the current month
-    end_of_month = end_of_month.strftime('%Y-%m-%d')
     
     params = {
         "language": request.args.get('language', 'en-US'),
-        "sort_by": request.args.get('sort_by', 'release_date.desc'),
         "page": request.args.get('page', 1),
-        "primary_release_year": request.args.get('primary_release_year', None),
-        "include_adult": request.args.get('include_adult', 'false'),
-        "release_date.gte": request.args.get('release_date_gte', start_of_month),
-        "release_date.lte": request.args.get('release_date_lte', end_of_month)   
     }
     
-    url = "https://api.themoviedb.org/3/discover/movie"
+    url = "https://api.themoviedb.org/3/trending/movie/day"
     
     headers = {
         "accept": "application/json",
         "Authorization": f"Bearer {token}"
     }
     
-    response = requests.get(url, headers=headers, params={k: v for k, v in params.items() if v is not None})
+    response = requests.get(url, headers=headers, params=params)
     
     if response.status_code == 200:
         return jsonify(response.json())
