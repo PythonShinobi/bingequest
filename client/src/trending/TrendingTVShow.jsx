@@ -112,7 +112,7 @@ const TrendingTVShows = () => {
           variant="h3"
           align="center"
           gutterBottom
-          sx={{ marginTop: "50px", marginBottom: "30px" }}
+          sx={{ marginTop: "100px", marginBottom: "30px" }}
         >
           Trending TV Shows
         </Typography>
