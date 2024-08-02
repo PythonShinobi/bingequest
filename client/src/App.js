@@ -6,7 +6,7 @@ import Home from "./home/Home"
 import Register from './register/Register';
 import Login from './login/Login';
 import PopularMovies from './popular/Movie';
-import NewestReleases from './newest-releases/Movie';
+import TrendingMovies from './trending/TrendingMovies';
 import TopRatedMovies from './top-rated/Movie';
 import UpcomingMovies from './upcoming/Movies';
 import PopularTVShows from './popular/Shows';
@@ -18,7 +18,7 @@ const MemoizedHome = memo(Home);
 const MemoizedRegister = memo(Register);
 const MemoizedLogin = memo(Login);
 const MemoizedPopularMovies = memo(PopularMovies);
-const MemoizedNewestReleases = memo(NewestReleases);
+const MemoizedTrendingMovies = memo(TrendingMovies);
 const MemoizedTopRatedMovies = memo(TopRatedMovies);
 const MemoizedUpcomingMovies = memo(UpcomingMovies);
 const MemoizedPopularTVShows = memo(PopularTVShows);
@@ -34,7 +34,7 @@ const App = () => {
         <Route path='/Register' element={<MemoizedRegister />} />
         <Route path='/login' element={<MemoizedLogin />} />
         <Route path='/movies/popular' element={<MemoizedPopularMovies />} />
-        <Route path='/movies/newest-releases' element={<MemoizedNewestReleases />} />
+        <Route path='/movies/trending' element={<MemoizedTrendingMovies />} />
         <Route path='/movies/top-rated' element={<MemoizedTopRatedMovies />} />
         <Route path='/movies/upcoming' element={<MemoizedUpcomingMovies />} />
         <Route path='/tv-shows/popular' element={<MemoizedPopularTVShows />} />
