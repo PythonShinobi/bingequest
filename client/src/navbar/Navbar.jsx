@@ -104,7 +104,7 @@ const Navbar = () => {
           onClose={handleMenuClose}
         >
           <MenuItem component={NavLink} to="/tv-shows/popular">Popular</MenuItem>
-          <MenuItem component={NavLink} to="/tv-shows/airing-today">Airing Today</MenuItem>
+          <MenuItem component={NavLink} to="/tv-shows/airing-today">Airing</MenuItem>
           <MenuItem component={NavLink} to="/tv-shows/on-tv">On TV</MenuItem>
           <MenuItem component={NavLink} to="/tv-shows/top-rated">Top Rated</MenuItem>
         </Menu>
@@ -182,7 +182,7 @@ const Navbar = () => {
               </Button>
               <div className="dropdown-content">
                 <NavLink to="/tv-shows/popular">Popular</NavLink>
-                <NavLink to="/tv-shows/airing-today">Airing Today</NavLink>
+                <NavLink to="/tv-shows/airing-today">Airing</NavLink>
                 <NavLink to="/tv-shows/on-tv">On TV</NavLink>
                 <NavLink to="/tv-shows/top-rated">Top Rated</NavLink>
               </div>
