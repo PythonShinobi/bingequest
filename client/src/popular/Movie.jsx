@@ -127,6 +127,9 @@ const PopularMovies = () => {
           onApplyFilters={handleApplyFilters}
           sortOptions={popularSortOptions}
         />
+        <Typography variant="h3" align="center" gutterBottom sx={{ marginTop: "50px", marginBottom: "30px"}}>
+          Popular Movies
+        </Typography>
         <Grid container spacing={2} justifyContent="center">
           {loading
             ? Array.from(new Array(20)).map((_, index) => (

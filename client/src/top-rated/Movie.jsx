@@ -42,7 +42,7 @@ const TopRatedMovies = () => {
       setMovies(response.data.results);
       setTotalPages(response.data.total_pages);
     } catch (error) {
-      console.error("Error fetching now playing movies:", error);
+      console.error("Error fetching top-rated movies:", error);
     } finally {
       setLoading(false);
     }
@@ -66,6 +66,8 @@ const TopRatedMovies = () => {
     () => [
       { value: "vote_average.desc", label: "Top Rated" },
       { value: "vote_average.asc", label: "Low Rated" },
+      { value: "vote_count.desc", label: "Highest Votes" },
+      { value: "vote_count.asc", label: "Lowest Votes" },
     ],
     []
   );
@@ -122,11 +124,14 @@ const TopRatedMovies = () => {
   return (
     <div>
       <Navbar />
-      <div className="movie-container">
+      <div className="movie-container">        
         <FilterComponent
           onApplyFilters={handleApplyFilters}
           sortOptions={topRatedSortOptions}
         />
+        <Typography variant="h3" align="center" gutterBottom sx={{ marginTop: "50px", marginBottom: "30px"}}>
+          Top Rated
+        </Typography>
         <Grid container spacing={2} justifyContent="center">
           {loading
             ? Array.from(new Array(20)).map((_, index) => (
