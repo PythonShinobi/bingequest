@@ -18,6 +18,7 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
 import "./Movie.css";
 import Navbar from "../navbar/Navbar";
+import FilterComponent from "../components/Filters";
 
 // Define a function to scale vote average to a star rating
 const getStarRating = (voteAverage) => {
@@ -29,13 +30,14 @@ const UpcomingMovies = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState({});
   const [showBackToTop, setShowBackToTop] = useState(false); // State to show Back to Top button
 
-  const fetchUpcomingMovies = useCallback(async (page) => {
+  const fetchUpcomingMovies = useCallback(async (page, filters) => {
     setLoading(true);
     try {
       const response = await axios.get("/api/movies/upcoming", {
-        params: { page },
+        params: { page, ...filters },
       });
       setMovies(response.data.results);
       setTotalPages(response.data.total_pages);
@@ -47,13 +49,25 @@ const UpcomingMovies = () => {
   }, []);
 
   useEffect(() => {
-    fetchUpcomingMovies(currentPage);
+    fetchUpcomingMovies(currentPage, filters);
     window.scrollTo(0, 0); // Scroll to the top of the page on page change
-  }, [currentPage, fetchUpcomingMovies]);
+  }, [currentPage, filters, fetchUpcomingMovies]);
 
   const handlePageChange = (event, newPage) => {
     setCurrentPage(newPage);
   };
+
+  const handleApplyFilters = (newFilters) => {
+    setFilters(newFilters);
+    setCurrentPage(1); // Reset to the first page when filters are applied
+  };
+
+  const upcomingSortOptions = useMemo(
+    () => [
+      { value: "release_date.desc", label: "Upcoming Releases" },      
+    ],
+    []
+  );
 
   const memoizedMovies = useMemo(
     () =>
@@ -107,7 +121,14 @@ const UpcomingMovies = () => {
   return (
     <div>
       <Navbar />
-      <div className="movie-container">        
+      <div className="movie-container">
+        <FilterComponent
+          onApplyFilters={handleApplyFilters}
+          sortOptions={upcomingSortOptions}
+        />
+        <Typography variant="h3" align="center" gutterBottom sx={{ marginTop: "50px", marginBottom: "30px"}}>
+          Upcoming Movies
+        </Typography>
         <Grid container spacing={2} justifyContent="center">
           {loading
             ? Array.from(new Array(20)).map((_, index) => (
