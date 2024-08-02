@@ -17,6 +17,8 @@ const FilterComponent = ({ onApplyFilters, sortOptions }) => {
   const [include_adult, setIncludeAdult] = useState("false");
   const [primary_release_year, setPrimaryReleaseYear] = useState("");
   const [with_genres, setWithGenres] = useState("");
+  const [release_date_gte, setReleaseDateGte] = useState("");
+  const [release_date_lte, setReleaseDateLte] = useState("");
   const [genres, setGenres] = useState([]);
 
   useEffect(() => {
@@ -43,7 +45,9 @@ const FilterComponent = ({ onApplyFilters, sortOptions }) => {
       sort_by,
       include_adult,
       primary_release_year,
-      with_genres
+      with_genres,
+      release_date_gte,
+      release_date_lte
     });
   };
 
@@ -144,7 +148,7 @@ const FilterComponent = ({ onApplyFilters, sortOptions }) => {
           <Select
             value={with_genres}
             onChange={(e) => setWithGenres(e.target.value)}
-            label="With Genres"
+            label="Genre"
           >
             {genres.map((genre) => (
               <MenuItem key={genre.id} value={genre.id}>
@@ -153,6 +157,28 @@ const FilterComponent = ({ onApplyFilters, sortOptions }) => {
             ))}
           </Select>
         </FormControl>
+      </Grid>
+      <Grid item xs={12} sm={6} md={3}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          label="Release Date GTE"
+          placeholder="2020-09-15"
+          value={release_date_gte}
+          onChange={(e) => setReleaseDateGte(e.target.value)}
+          helperText="Movies released on or after this date."
+        />
+      </Grid>
+      <Grid item xs={12} sm={6} md={3}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          label="Release Date LTE"
+          placeholder="2023-09-15"
+          value={release_date_lte}
+          onChange={(e) => setReleaseDateLte(e.target.value)}
+          helperText="Movies released on or before this date."
+        />
       </Grid>
       <Grid item xs={12}>
         <Button
