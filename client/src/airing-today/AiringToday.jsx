@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 
-import "./styles.css";
+import "./AiringToday.css";
 import Navbar from "../navbar/Navbar";
 
 // Define a function to scale vote average to a star rating
