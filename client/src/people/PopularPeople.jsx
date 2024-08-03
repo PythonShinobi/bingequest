@@ -13,6 +13,7 @@ import {
   Skeleton,
   Pagination,
   Fab,
+  TextField,
 } from "@mui/material";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -31,6 +32,7 @@ const PopularPeople = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens
 
@@ -49,13 +51,42 @@ const PopularPeople = () => {
     }
   }, []);
 
+  const searchPeople = useCallback(async (page, query) => {
+    setLoading(true);
+    try {
+      const response = await axios.get("/api/search/popular", {
+        params: {
+          page, 
+          query,
+          include_adult: false,
+          language: "en-US",
+        },
+      });
+      setPeople(response.data.results);
+      setTotalPages(response.data.total_pages);
+    } catch (error) {
+      console.error("Error searching for people:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    fetchPopularPeople(currentPage);
+    if (searchTerm) {
+      searchPeople(currentPage, searchTerm);
+    } else {
+      fetchPopularPeople(currentPage);
+    }
     window.scrollTo(0, 0);
-  }, [currentPage, fetchPopularPeople]);
+  }, [currentPage, searchTerm, fetchPopularPeople, searchPeople]);
 
   const handlePageChange = (event, newPage) => {
     setCurrentPage(newPage);
+  };
+
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+    setCurrentPage(1); // Reset to first page on new search
   };
 
   const memoizedPeople = useMemo(
@@ -71,7 +102,7 @@ const PopularPeople = () => {
             />
             <CardContent>
               <Typography variant="h6">{person.name}</Typography>
-              <Typography variant="body2">{person.known_for_department}</Typography>              
+              <Typography variant="body2">{person.known_for_department}</Typography>
               <Rating
                 value={getPopularityRating(person.popularity)}
                 precision={0.1}
@@ -119,6 +150,15 @@ const PopularPeople = () => {
         >
           Popular People
         </Typography>
+
+        <TextField
+          label="Search for an actor"
+          variant="outlined"
+          fullWidth
+          value={searchTerm}
+          onChange={handleSearchChange}
+          sx={{ marginBottom: "30px" }}
+        />
 
         <Grid container spacing={2} justifyContent="center">
           {loading
