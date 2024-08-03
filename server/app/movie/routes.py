@@ -1,6 +1,5 @@
 import requests
 from flask import jsonify, request
-from datetime import datetime, timedelta
 
 from app.movie import bp
 from config import Config
