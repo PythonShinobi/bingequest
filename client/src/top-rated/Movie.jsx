@@ -15,6 +15,7 @@ import {
   Fab,
 } from "@mui/material";
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 import "./Movie.css";
 import Navbar from "../navbar/Navbar";
@@ -32,6 +33,8 @@ const TopRatedMovies = () => {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({});
   const [showBackToTop, setShowBackToTop] = useState(false); // State to show Back to Top button
+
+  const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens
 
   const fetchTopRatedMovies = useCallback(async (page, filters) => {
     setLoading(true);
@@ -129,8 +132,13 @@ const TopRatedMovies = () => {
           onApplyFilters={handleApplyFilters}
           sortOptions={topRatedSortOptions}
         />
-        <Typography variant="h3" align="center" gutterBottom sx={{ marginTop: "50px", marginBottom: "30px"}}>
-          Top Rated
+        <Typography 
+          variant={isSmallScreen ? 'h4' : 'h3'}
+          align="center" 
+          gutterBottom 
+          sx={{ marginTop: "50px", marginBottom: "30px"}}
+        >
+          Top Rated Movies
         </Typography>
         <Grid container spacing={2} justifyContent="center">
           {loading

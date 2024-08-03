@@ -15,6 +15,7 @@ import {
   Fab,
 } from "@mui/material";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 import "./AiringToday.css";
 import Navbar from "../navbar/Navbar";
@@ -30,6 +31,8 @@ const AiringTVShows = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [showBackToTop, setShowBackToTop] = useState(false); // State to show Back to Top button
+
+  const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens
 
   const fetchAiringTodayTVShows = useCallback(async (page) => {
     setLoading(true);
@@ -109,7 +112,7 @@ const AiringTVShows = () => {
       <Navbar />
       <div className="shows-container">
         <Typography
-          variant="h3"
+          variant={isSmallScreen ? 'h4' : 'h3'}
           align="center"
           gutterBottom
           sx={{ marginTop: "100px", marginBottom: "30px" }}

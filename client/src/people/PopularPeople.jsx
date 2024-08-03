@@ -15,6 +15,7 @@ import {
   Fab,
 } from "@mui/material";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 import "./PopularPeople.css";
 import Navbar from "../navbar/Navbar";
@@ -30,6 +31,8 @@ const PopularPeople = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [showBackToTop, setShowBackToTop] = useState(false);
+
+  const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens
 
   const fetchPopularPeople = useCallback(async (page) => {
     setLoading(true);
@@ -109,7 +112,7 @@ const PopularPeople = () => {
       <Navbar />
       <div className="people-container">
         <Typography
-          variant="h3"
+          variant={isSmallScreen ? 'h4' : 'h3'}
           align="center"
           gutterBottom
           sx={{ marginTop: "100px", marginBottom: "30px" }}
