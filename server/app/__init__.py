@@ -45,6 +45,10 @@ def create_app(config=Config):
     from app.people import bp as people_bp
     flask_app.register_blueprint(people_bp, url_prefix="/api")
 
+    # Register the home page blueprint
+    from app.home import bp as home_bp
+    flask_app.register_blueprint(home_bp, url_prefix="/api")
+
     # Setup logging
     if not flask_app.debug:
         handler = RotatingFileHandler('error.log', maxBytes=10240, backupCount=0)
