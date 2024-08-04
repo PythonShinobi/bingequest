@@ -1,0 +1,16 @@
+.MuiPaginationItem-root {
+  color: #000000; /* Replace with your primary text color */
+  background-color: #ffffff; /* Replace with your background paper color */
+  border-radius: 8px;
+  border: 1px solid #e0e0e0; /* Replace with your divider color */
+}
+
+.Mui-selected {
+  background-color: #1976d2 !important; /* Replace with your primary main color */
+  color: #ffffff !important; /* Replace with your background paper color */
+  border-color: #ff9800 !important; /* Replace with your secondary main color */
+}
+
+.MuiPaginationItem-ellipsis {
+  color: #000000; /* Replace with your primary text color */
+}

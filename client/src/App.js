@@ -15,6 +15,7 @@ import TopRatedShows from './top-rated/TopRatedShows';
 import TrendingTVShows from './trending/TrendingTVShow';
 import PopularPeople from './people/PopularPeople';
 import SearchMovie from './search/SearchMovie';
+import SearchTVShow from './search/SearchTVShow';
 
 const MemoizedHome = memo(Home);
 const MemoizedRegister = memo(Register);
@@ -29,6 +30,7 @@ const MemoizedTopRatedShows = memo(TopRatedShows);
 const MemoizedTrendingTVShows = memo(TrendingTVShows);
 const MemoizedPopularPeople = memo(PopularPeople);
 const MemoizedSearchMovie = memo(SearchMovie);
+const MemoizedSearchTVShow = memo(SearchTVShow);
 
 const App = () => {
   return (
@@ -47,6 +49,7 @@ const App = () => {
         <Route path='/tv-shows/trending' element={<MemoizedTrendingTVShows />} />
         <Route path='/people/popular' element={<MemoizedPopularPeople />} />
         <Route path='/movies/search' element={<MemoizedSearchMovie  />} />
+        <Route path='/tv-shows/search' element={<MemoizedSearchTVShow  />} />
       </Routes>
     </BrowserRouter>
   );
