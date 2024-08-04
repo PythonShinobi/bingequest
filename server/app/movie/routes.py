@@ -147,6 +147,7 @@ def search():
     params = {
         "query": request.args.get("query", ""),
         "page": request.args.get('page', 1),
+        "include_adult": request.args.get('include_adult', 'true'),
     }
 
     url = "https://api.themoviedb.org/3/search/movie"

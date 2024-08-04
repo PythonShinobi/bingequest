@@ -130,3 +130,28 @@ def get_trending_shows():
         return jsonify(response.json())
     else:
         return jsonify({"error": "Unable to fetch data from TMDb"}), response.status_code
+    
+@bp.route("/tv-shows/search", methods=["GET"])
+def search():
+    token = Config.ACCESS_TOKEN
+
+    params = {
+        "query": request.args.get("query", ""),
+        "page": request.args.get('page', 1),
+        "include_adult": request.args.get('include_adult', 'true'),
+    }
+
+    url = "https://api.themoviedb.org/3/search/tv"
+
+    headers = {
+        "accept": "application/json",
+        "Authorization": f"Bearer {token}"
+    }
+
+    response = requests.get(url, headers=headers, params=params)
+
+    if response.status_code == 200:
+        json_data = response.json()
+        return jsonify(json_data)  # Return only the 'results' array
+    else:
+        return jsonify({"error": "Unable to fetch data from TMDb"}), response.status_code
