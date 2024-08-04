@@ -88,6 +88,7 @@ const Navbar = () => {
           open={Boolean(moviesMenuAnchor)}
           onClose={handleMenuClose}
         >
+          <MenuItem component={NavLink} to="/movies/search">Search</MenuItem>
           <MenuItem component={NavLink} to="/movies/popular">Popular</MenuItem>
           <MenuItem component={NavLink} to="/movies/trending">Trending</MenuItem>
           <MenuItem component={NavLink} to="/movies/upcoming">Upcoming</MenuItem>
@@ -103,6 +104,7 @@ const Navbar = () => {
           open={Boolean(tvShowsMenuAnchor)}
           onClose={handleMenuClose}
         >
+          <MenuItem component={NavLink} to="/tv-shows/search">Search</MenuItem>
           <MenuItem component={NavLink} to="/tv-shows/popular">Popular</MenuItem>
           <MenuItem component={NavLink} to="/tv-shows/trending">Trending</MenuItem>
           <MenuItem component={NavLink} to="/tv-shows/airing-today">Airing</MenuItem>
@@ -169,7 +171,8 @@ const Navbar = () => {
               <Button color="inherit" sx={{ m: 1 }}>
                 Movies
               </Button>
-              <div className="dropdown-content">
+              <div className="dropdown-content">                
+                <NavLink to="/movies/search">Search</NavLink>
                 <NavLink to="/movies/popular">Popular</NavLink>
                 <NavLink to="/movies/trending">Trending</NavLink>
                 <NavLink to="/movies/upcoming">Upcoming</NavLink>
@@ -181,6 +184,7 @@ const Navbar = () => {
                 TV Shows
               </Button>
               <div className="dropdown-content">
+                <NavLink to="/tv-shows/search">Search</NavLink>
                 <NavLink to="/tv-shows/popular">Popular</NavLink>
                 <NavLink to="/tv-shows/trending">Trending</NavLink>
                 <NavLink to="/tv-shows/airing-today">Airing</NavLink>
