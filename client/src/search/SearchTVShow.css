@@ -1,5 +1,6 @@
-.search-movies {
-  padding:2px 16px;   
+.search-tv-shows {
+  padding: 0 16px; 
+  margin-top: 80px;
   margin-bottom: 80px;
   top: 0;
   z-index: 1100; /* Ensures the navbar is above other content */
@@ -7,7 +8,7 @@
 
 .back-to-top {
   position: fixed;
-  bottom: 30px;
-  right: 30px;
+  bottom: 20px;
+  right: 20px;
   z-index: 1000; /* Ensure it's above other content */
 }

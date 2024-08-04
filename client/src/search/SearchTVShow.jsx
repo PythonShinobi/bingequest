@@ -1,4 +1,4 @@
-// client/src/search/SearchMovie.jsx
+// client/src/search/SearchTVShow.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import Skeleton from "react-loading-skeleton";
@@ -23,7 +23,7 @@ import {
   Rating
 } from "@mui/material";
 
-import "./SearchMovie.css";
+import "./SearchTVShow.css";
 import Navbar from "../navbar/Navbar";
 
 // Define a function to scale vote average to a star rating
@@ -31,7 +31,7 @@ const getStarRating = (voteAverage) => {
   return Math.min(5, voteAverage / 2); // Scale from 0-10 to 0-5 stars
 };
 
-const SearchMovie = () => {
+const SearchTVShow = () => {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -40,15 +40,13 @@ const SearchMovie = () => {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [searchPerformed, setSearchPerformed] = useState(false);
 
-  const handleSearch = async (e, page=1) => {
-    if (e) {
-      e.preventDefault();
-    }
+  const handleSearch = async (e, page = 1) => {
+    if (e) e.preventDefault();
     setSearchPerformed(true);
     setLoading(true);
 
     try {
-      const response = await axios.get("/api/movies/search", {
+      const response = await axios.get("/api/tv-shows/search", {
         params: { query, page }
       });
       setResults(response.data.results);
@@ -68,10 +66,7 @@ const SearchMovie = () => {
   };
 
   const handleScrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleScroll = () => {
@@ -90,20 +85,17 @@ const SearchMovie = () => {
   const memoizedResults = useMemo(() => results, [results]);
 
   return (
-    <div className="search-movies">
+    <div className="search-tv-shows">
       <Container sx={{ bgcolor: 'background.default', color: 'text.primary' }}>
         <Navbar />
         <form
           onSubmit={(e) => handleSearch(e, 1)}
-          style={{
-            marginTop: "120px",
-            marginBottom: "20px"
-          }}
+          style={{ marginTop: "120px", marginBottom: "20px" }}
         >
           <TextField
             fullWidth
             variant="outlined"
-            placeholder="Search for a movie"
+            placeholder="Search for a TV show"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             InputProps={{
@@ -137,24 +129,24 @@ const SearchMovie = () => {
             memoizedResults.length > 0 ? (
               <>
                 <Grid container spacing={3}>
-                  {memoizedResults.map((movie) => (
-                    <Grid item xs={12} sm={6} md={4} lg={3} key={movie.id}>
+                  {results.map((show) => (
+                    <Grid item xs={12} sm={6} md={4} lg={3} key={show.id}>
                       <Card sx={{ bgcolor: 'background.paper' }}>
                         <CardMedia
                           component="img"
-                          image={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                          alt={movie.title}
+                          image={`https://image.tmdb.org/t/p/w500${show.poster_path}`}
+                          alt={show.name}
                           height="450"
                         />
                         <CardContent>
-                          <Typography variant="h6" gutterBottom>{movie.title}</Typography>
+                          <Typography variant="h6" gutterBottom>{show.name}</Typography>
                           <Rating
-                            value={getStarRating(movie.vote_average)}
+                            value={getStarRating(show.vote_average)}
                             precision={0.1}
                             readOnly
                           />
                           <Typography variant="body2">
-                            {movie.vote_average} ({movie.vote_count} votes)
+                            {show.vote_average} ({show.vote_count} votes)
                           </Typography>
                         </CardContent>
                       </Card>
@@ -188,7 +180,7 @@ const SearchMovie = () => {
                     boundaryCount={1}
                     shape="rounded"
                     size="small"
-                    disabled={loading}                    
+                    disabled={loading}
                   />
                   <Button
                     variant="contained"
@@ -209,10 +201,10 @@ const SearchMovie = () => {
             )
           )}
         </Box>
-        
+
         {/* Back to Top Button */}
         {showBackToTop && (
-          <div className="back-to-top" style={{ position: 'fixed', bottom: '58px', right: '30px' }}>
+          <div className="back-to-top">
             <Fab color="primary" size="large" onClick={handleScrollToTop}>
               <KeyboardArrowUpIcon />
             </Fab>
@@ -223,4 +215,4 @@ const SearchMovie = () => {
   );
 };
 
-export default SearchMovie;
+export default SearchTVShow;
