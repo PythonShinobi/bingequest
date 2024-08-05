@@ -1,5 +1,6 @@
 // client/src/search/SearchMovie.jsx
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from "axios";
 import Skeleton from "react-loading-skeleton";
 import 'react-loading-skeleton/dist/skeleton.css';
@@ -31,40 +32,65 @@ const getStarRating = (voteAverage) => {
   return Math.min(5, voteAverage / 2); // Scale from 0-10 to 0-5 stars
 };
 
+const searchCache = {};
+
 const SearchMovie = () => {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Set loading to true initially
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [searchPerformed, setSearchPerformed] = useState(false);
 
-  const handleSearch = async (e, page=1) => {
-    if (e) {
-      e.preventDefault();
-    }
-    setSearchPerformed(true);
-    setLoading(true);
+  const navigate = useNavigate();
+  const location = useLocation();
 
+  const fetchSearchResults = useCallback(async (query, page) => {
+    const cacheKey = `${query}-${page}`;
+    if (searchCache[cacheKey]) {
+      setResults(searchCache[cacheKey].results);
+      setTotalPages(searchCache[cacheKey].totalPages);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
     try {
       const response = await axios.get("/api/movies/search", {
         params: { query, page }
       });
-      setResults(response.data.results);
-      setTotalPages(response.data.total_pages);
-      setCurrentPage(page);
+      const data = {
+        results: response.data.results,
+        totalPages: response.data.total_pages
+      };
+      searchCache[cacheKey] = data;
+      setResults(data.results);
+      setTotalPages(data.totalPages);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  const handleSearch = async (e, page = 1) => {
+    if (e) e.preventDefault();
+    setSearchPerformed(true);
+    fetchSearchResults(query, page);
+    // Update the URL with the search query and page number
+    navigate(`?query=${encodeURIComponent(query)}&page=${page}`);
+    window.scrollTo(0, 0);
   };
 
   const handlePageChange = (event, page) => {
     setCurrentPage(page);
     handleSearch(null, page);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleCardClick = (movieId) => {
+    navigate(`/movie/${movieId}`);
   };
 
   const handleScrollToTop = () => {
@@ -86,6 +112,23 @@ const SearchMovie = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const query = queryParams.get('query') || "";
+    const page = parseInt(queryParams.get('page')) || 1;
+
+    setQuery(query);
+    setCurrentPage(page);
+
+    if (query) {
+      setLoading(true); // Show loading state when navigating back
+      fetchSearchResults(query, page);
+    } else {
+      setResults([]); // Clear results if no query
+      setLoading(false); // Reset loading state if no query
+    }
+  }, [location.search, fetchSearchResults]);
 
   const memoizedResults = useMemo(() => results, [results]);
 
@@ -139,7 +182,7 @@ const SearchMovie = () => {
                 <Grid container spacing={3}>
                   {memoizedResults.map((movie) => (
                     <Grid item xs={12} sm={6} md={4} lg={3} key={movie.id}>
-                      <Card sx={{ bgcolor: 'background.paper' }}>
+                      <Card sx={{ bgcolor: 'background.paper' }} onClick={() => handleCardClick(movie.id)} style={{ cursor: 'pointer' }}>
                         <CardMedia
                           component="img"
                           image={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}

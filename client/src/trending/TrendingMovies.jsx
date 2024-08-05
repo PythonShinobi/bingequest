@@ -1,6 +1,9 @@
 // client/src/trending/TrendingMovies.jsx
 import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from "axios";
+import useMediaQuery from '@mui/material/useMediaQuery';
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import {
   Grid,
   Card,
@@ -14,8 +17,6 @@ import {
   Pagination,
   Fab,
 } from "@mui/material";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import useMediaQuery from '@mui/material/useMediaQuery';
 
 import "./TrendingMovies.css";
 import Navbar from "../navbar/Navbar";
@@ -25,6 +26,9 @@ const getStarRating = (voteAverage) => {
   return Math.min(5, voteAverage / 2); // Scale from 0-10 to 0-5 stars
 };
 
+// Cache object to store movie data
+const movieCache = {};
+
 const TrendingMovies = () => {
   const [movies, setMovies] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -32,16 +36,32 @@ const TrendingMovies = () => {
   const [loading, setLoading] = useState(true);
   const [showBackToTop, setShowBackToTop] = useState(false); // State to show Back to Top button
 
+  const navigate = useNavigate();
+  const location = useLocation();
   const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens
 
+  // Fetch trending movies with caching
   const fetchTrendingMovies = useCallback(async (page) => {
     setLoading(true);
     try {
+      const cacheKey = `page-${page}`;
+      if (movieCache[cacheKey]) {
+        setMovies(movieCache[cacheKey].results);
+        setTotalPages(movieCache[cacheKey].totalPages);
+        setLoading(false);
+        return;
+      }
+      
       const response = await axios.get("/api/movies/trending", {
         params: { page },
       });
-      setMovies(response.data.results);
-      setTotalPages(response.data.total_pages);
+      const data = {
+        results: response.data.results,
+        totalPages: response.data.total_pages
+      };
+      movieCache[cacheKey] = data;
+      setMovies(data.results);
+      setTotalPages(data.totalPages);
     } catch (error) {
       console.error("Error fetching trending movies:", error);
     } finally {
@@ -49,20 +69,31 @@ const TrendingMovies = () => {
     }
   }, []);
 
-  useEffect(() => {
-    fetchTrendingMovies(currentPage);
-    window.scrollTo(0, 0); // Scroll to the top of the page on page change
-  }, [currentPage, fetchTrendingMovies]);
-
+  // Handle page change and update URL
   const handlePageChange = (event, newPage) => {
     setCurrentPage(newPage);
+    navigate(`?page=${newPage}`, { replace: true });
   };
+
+  // Handle card click navigation
+  const handleCardClick = useCallback((movieId) => {
+    navigate(`/movie/${movieId}`);
+  }, [navigate]);
+
+  // Load movies based on URL parameters
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const page = parseInt(queryParams.get('page')) || 1;
+    setCurrentPage(page);
+    fetchTrendingMovies(page);
+    window.scrollTo(0, 0); // Scroll to the top of the page on page change
+  }, [location.search, fetchTrendingMovies]);
 
   const memoizedMovies = useMemo(
     () =>
       movies.map((movie) => (
         <Grid item xs={12} sm={6} md={3} key={movie.id}>
-          <Card>
+          <Card onClick={() => handleCardClick(movie.id)} style={{ cursor: 'pointer' }}>
             <CardMedia
               component="img"
               image={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
@@ -84,7 +115,7 @@ const TrendingMovies = () => {
           </Card>
         </Grid>
       )),
-    [movies]
+    [movies, handleCardClick]
   );
 
   const handleScrollToTop = () => {

@@ -1,6 +1,9 @@
 // client/src/top-rated/Movie.jsx
 import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from "axios";
+import useMediaQuery from '@mui/material/useMediaQuery';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import {
   Grid,
   Card,
@@ -14,8 +17,6 @@ import {
   Pagination,
   Fab,
 } from "@mui/material";
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import useMediaQuery from '@mui/material/useMediaQuery';
 
 import "./Movie.css";
 import Navbar from "../navbar/Navbar";
@@ -26,6 +27,9 @@ const getStarRating = (voteAverage) => {
   return Math.min(5, voteAverage / 2); // Scale from 0-10 to 0-5 stars
 };
 
+// Cache object to store movie data
+const movieCache = {};
+
 const TopRatedMovies = () => {
   const [movies, setMovies] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -34,16 +38,31 @@ const TopRatedMovies = () => {
   const [filters, setFilters] = useState({});
   const [showBackToTop, setShowBackToTop] = useState(false); // State to show Back to Top button
 
+  const navigate = useNavigate();
+  const location = useLocation();
   const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens
 
   const fetchTopRatedMovies = useCallback(async (page, filters) => {
+    const cacheKey = `${page}-${JSON.stringify(filters)}`;
+    if (movieCache[cacheKey]) {
+      setMovies(movieCache[cacheKey].results);
+      setTotalPages(movieCache[cacheKey].totalPages);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await axios.get("/api/movies/top-rated", {
         params: { page, ...filters },
       });
-      setMovies(response.data.results);
-      setTotalPages(response.data.total_pages);
+      const data = {
+        results: response.data.results,
+        totalPages: response.data.total_pages
+      };
+      movieCache[cacheKey] = data;
+      setMovies(data.results);
+      setTotalPages(data.totalPages);
     } catch (error) {
       console.error("Error fetching top-rated movies:", error);
     } finally {
@@ -51,18 +70,26 @@ const TopRatedMovies = () => {
     }
   }, []);
 
-  useEffect(() => {
-    fetchTopRatedMovies(currentPage, filters);
-    window.scrollTo(0, 0); // Scroll to the top of the page on page change
-  }, [currentPage, filters, fetchTopRatedMovies]);
+  const handleCardClick = useCallback((movieId) => {
+    navigate(`/movie/${movieId}`);
+  }, [navigate]);
+
+  const updateURL = (page, filters) => {
+    const queryParams = new URLSearchParams();
+    queryParams.set('page', page);
+    queryParams.set('filters', JSON.stringify(filters));
+    navigate(`?${queryParams.toString()}`, { replace: true });
+  };
 
   const handlePageChange = (event, newPage) => {
     setCurrentPage(newPage);
+    updateURL(newPage, filters);
   };
 
   const handleApplyFilters = (newFilters) => {
     setFilters(newFilters);
     setCurrentPage(1); // Reset to the first page when filters are applied
+    updateURL(1, newFilters);
   };
 
   const topRatedSortOptions = useMemo(
@@ -75,11 +102,25 @@ const TopRatedMovies = () => {
     []
   );
 
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const page = parseInt(queryParams.get('page')) || 1;
+    const filters = JSON.parse(queryParams.get('filters')) || {};
+
+    setCurrentPage(page);
+    setFilters(filters);
+
+    // Fetch movies from cache or API
+    fetchTopRatedMovies(page, filters);
+
+    window.scrollTo(0, 0); // Scroll to the top of the page on page change
+  }, [location.search, fetchTopRatedMovies]);
+
   const memoizedMovies = useMemo(
     () =>
       movies.map((movie) => (
         <Grid item xs={12} sm={6} md={3} key={movie.id}>
-          <Card>
+          <Card onClick={() => handleCardClick(movie.id)} style={{ cursor: 'pointer' }}>
             <CardMedia
               component="img"
               image={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
@@ -101,7 +142,7 @@ const TopRatedMovies = () => {
           </Card>
         </Grid>
       )),
-    [movies]
+    [movies, handleCardClick]
   );
 
   const handleScrollToTop = () => {
@@ -125,9 +166,9 @@ const TopRatedMovies = () => {
   }, []);
 
   return (
-    <div>
+    <div className="movie-container">
       <Navbar />
-      <div className="movie-container">        
+      <div className="movie-container">
         <FilterComponent
           onApplyFilters={handleApplyFilters}
           sortOptions={topRatedSortOptions}
