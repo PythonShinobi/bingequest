@@ -164,3 +164,26 @@ def search():
         return jsonify(json_data)  # Return only the 'results' array
     else:
         return jsonify({"error": "Unable to fetch data from TMDb"}), response.status_code
+
+@bp.route('/movies/<int:movie_id>', methods=['GET'])
+def get_movie_details(movie_id):
+    token = Config.ACCESS_TOKEN
+
+    params = {
+        "language": request.args.get('language', 'en-US'),
+    }
+
+    url = f'https://api.themoviedb.org/3/movie/{movie_id}'
+
+    headers = {
+        "accept": "application/json",
+        "Authorization": f"Bearer {token}"
+    }
+
+    response = requests.get(url, headers=headers, params=params)
+
+    if response.status_code == 200:
+        json_data = response.json()
+        return jsonify(json_data)  # Return only the 'results' array
+    else:
+        return jsonify({"error": "Unable to fetch data from TMDb"}), response.status_code
