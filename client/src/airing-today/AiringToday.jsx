@@ -1,21 +1,22 @@
 // client/src/airing-today/AiringToday.jsx
 import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from "axios";
-import {
-  Grid,
-  Card,
-  CardMedia,
-  CardContent,
-  Typography,
-  Rating,
-  Button,
-  Stack,
-  Skeleton,
-  Pagination,
-  Fab,
-} from "@mui/material";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { 
+  Grid, 
+  Card, 
+  CardMedia, 
+  CardContent, 
+  Typography, 
+  Rating, 
+  Button, 
+  Stack, 
+  Skeleton, 
+  Pagination, 
+  Fab   
+} from "@mui/material";
 
 import "./AiringToday.css";
 import Navbar from "../navbar/Navbar";
@@ -25,23 +26,42 @@ const getStarRating = (voteAverage) => {
   return Math.min(5, voteAverage / 2); // Scale from 0-10 to 0-5 stars
 };
 
-const AiringTVShows = () => {
+// Cache object to store TV show data
+const showCache = {};
+
+const AiringToday = () => {
   const [shows, setShows] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [showBackToTop, setShowBackToTop] = useState(false); // State to show Back to Top button
 
+  const navigate = useNavigate();
+  const location = useLocation();
   const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens
 
+  // Fetch airing today TV shows with caching
   const fetchAiringTodayTVShows = useCallback(async (page) => {
     setLoading(true);
     try {
+      const cacheKey = `page-${page}`;
+      if (showCache[cacheKey]) {
+        setShows(showCache[cacheKey].results);
+        setTotalPages(showCache[cacheKey].totalPages);
+        setLoading(false);
+        return;
+      }
+
       const response = await axios.get("/api/tv-shows/airing-today", {
         params: { page },
       });
-      setShows(response.data.results);
-      setTotalPages(response.data.total_pages);
+      const data = {
+        results: response.data.results,
+        totalPages: response.data.total_pages
+      };
+      showCache[cacheKey] = data;
+      setShows(data.results);
+      setTotalPages(data.totalPages);
     } catch (error) {
       console.error("Error fetching airing today TV shows:", error);
     } finally {
@@ -49,20 +69,31 @@ const AiringTVShows = () => {
     }
   }, []);
 
-  useEffect(() => {
-    fetchAiringTodayTVShows(currentPage);
-    window.scrollTo(0, 0); // Scroll to the top of the page on page change
-  }, [currentPage, fetchAiringTodayTVShows]);
-
+  // Handle page change and update URL
   const handlePageChange = (event, newPage) => {
     setCurrentPage(newPage);
+    navigate(`?page=${newPage}`, { replace: true });
   };
+
+  // Handle card click navigation
+  const handleCardClick = useCallback((showId) => {
+    navigate(`/tv-show/${showId}`);
+  }, [navigate]);
+
+  // Load TV shows based on URL parameters
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const page = parseInt(queryParams.get('page')) || 1;
+    setCurrentPage(page);
+    fetchAiringTodayTVShows(page);
+    window.scrollTo(0, 0); // Scroll to the top of the page on page change
+  }, [location.search, fetchAiringTodayTVShows]);
 
   const memoizedShows = useMemo(
     () =>
       shows.map((show) => (
         <Grid item xs={12} sm={6} md={3} key={show.id}>
-          <Card>
+          <Card onClick={() => handleCardClick(show.id)} style={{ cursor: 'pointer' }}>
             <CardMedia
               component="img"
               image={`https://image.tmdb.org/t/p/w500${show.poster_path}`}
@@ -84,7 +115,7 @@ const AiringTVShows = () => {
           </Card>
         </Grid>
       )),
-    [shows]
+    [shows, handleCardClick]
   );
 
   const handleScrollToTop = () => {
@@ -180,4 +211,4 @@ const AiringTVShows = () => {
   );
 };
 
-export default AiringTVShows;
+export default AiringToday;

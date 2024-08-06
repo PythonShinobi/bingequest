@@ -1,6 +1,9 @@
 // client/src/popular/Shows.jsx
 import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from "axios";
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import {
   Grid,
   Card,
@@ -14,8 +17,6 @@ import {
   Pagination,
   Fab,
 } from "@mui/material";
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import useMediaQuery from '@mui/material/useMediaQuery';
 
 import "./Shows.css";
 import Navbar from "../navbar/Navbar";
@@ -26,6 +27,9 @@ const getStarRating = (voteAverage) => {
   return Math.min(5, voteAverage / 2); // Scale from 0-10 to 0-5 stars
 };
 
+// Cache object to store show data
+const showCache = {};
+
 const PopularTVShows = () => {
   const [shows, setShows] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -34,16 +38,31 @@ const PopularTVShows = () => {
   const [filters, setFilters] = useState({});
   const [showBackToTop, setShowBackToTop] = useState(false); // State to show Back to Top button
 
+  const navigate = useNavigate();
+  const location = useLocation();
   const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens
 
   const fetchPopularTVShows = useCallback(async (page, filters) => {
+    const cacheKey = `${page}-${JSON.stringify(filters)}`;
+    if (showCache[cacheKey]) {
+      setShows(showCache[cacheKey].results);
+      setTotalPages(showCache[cacheKey].totalPages);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await axios.get("/api/tv-shows/popular", {
         params: { page, ...filters },
       });
-      setShows(response.data.results);
-      setTotalPages(response.data.total_pages);
+      const data = {
+        results: response.data.results,
+        totalPages: response.data.total_pages
+      };
+      showCache[cacheKey] = data;
+      setShows(data.results);
+      setTotalPages(data.totalPages);
     } catch (error) {
       console.error("Error fetching popular TV shows:", error);
     } finally {
@@ -51,18 +70,26 @@ const PopularTVShows = () => {
     }
   }, []);
 
-  useEffect(() => {
-    fetchPopularTVShows(currentPage, filters);
-    window.scrollTo(0, 0); // Scroll to the top of the page on page change
-  }, [currentPage, filters, fetchPopularTVShows]);
+  const handleCardClick = useCallback((showId) => {
+    navigate(`/tv-show/${showId}`);
+  }, [navigate]);
+
+  const updateURL = (page, filters) => {
+    const queryParams = new URLSearchParams();
+    queryParams.set('page', page);
+    queryParams.set('filters', JSON.stringify(filters));
+    navigate(`?${queryParams.toString()}`, { replace: true });
+  };
 
   const handlePageChange = (event, newPage) => {
     setCurrentPage(newPage);
+    updateURL(newPage, filters);
   };
 
   const handleApplyFilters = (newFilters) => {
     setFilters(newFilters);
     setCurrentPage(1); // Reset to the first page when filters are applied
+    updateURL(1, newFilters);
   };
 
   const popularSortOptions = useMemo(
@@ -73,11 +100,25 @@ const PopularTVShows = () => {
     []
   );
 
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const page = parseInt(queryParams.get('page')) || 1;
+    const filters = JSON.parse(queryParams.get('filters')) || {};
+
+    setCurrentPage(page);
+    setFilters(filters);
+
+    // Fetch shows from cache or API
+    fetchPopularTVShows(page, filters);
+
+    window.scrollTo(0, 0);
+  }, [location.search, fetchPopularTVShows]);
+
   const memoizedShows = useMemo(
     () =>
       shows.map((show) => (
         <Grid item xs={12} sm={6} md={3} key={show.id}>
-          <Card>
+          <Card onClick={() => handleCardClick(show.id)} style={{ cursor: 'pointer' }}>
             <CardMedia
               component="img"
               image={`https://image.tmdb.org/t/p/w500${show.poster_path}`}
@@ -99,7 +140,7 @@ const PopularTVShows = () => {
           </Card>
         </Grid>
       )),
-    [shows]
+    [shows, handleCardClick]
   );
 
   const handleScrollToTop = () => {
@@ -123,7 +164,7 @@ const PopularTVShows = () => {
   }, []);
 
   return (
-    <div>
+    <div className="shows-container">
       <Navbar />
       <div className="shows-container">
         <SeriesFilterComponent
