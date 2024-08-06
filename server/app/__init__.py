@@ -49,6 +49,13 @@ def create_app(config=Config):
     from app.home import bp as home_bp
     flask_app.register_blueprint(home_bp, url_prefix="/api")
 
+    # @flask_app.before_request
+    # def list_routes():
+    #     """Print out all registered routes."""
+    #     for rule in flask_app.url_map.iter_rules():
+    #         methods = ', '.join(rule.methods)
+    #         print(f"{methods} {rule.rule}")
+
     # Setup logging
     if not flask_app.debug:
         handler = RotatingFileHandler('error.log', maxBytes=10240, backupCount=0)
