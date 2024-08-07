@@ -27,6 +27,11 @@ const ProfilePage = () => {
   const [planToWatchList, setPlanToWatchList] = useState([]);
   const [onHoldList, setOnHoldList] = useState([]);
   const [droppedList, setDroppedList] = useState([]);
+  const [completedTVShows, setCompletedTVShows] = useState([]);
+  const [watchingTVShows, setWatchingTVShows] = useState([]);
+  const [planToWatchTVShows, setPlanToWatchTVShows] = useState([]);
+  const [onHoldTVShows, setOnHoldTVShows] = useState([]);
+  const [droppedTVShows, setDroppedTVShows] = useState([]);
 
   const user = useIsAuthenticated(); // Assuming this hook gets the authenticated user
   const theme = useTheme();
@@ -43,7 +48,7 @@ const ProfilePage = () => {
   const fetchWatchLists = useCallback(async () => {
     if (user) {
       try {
-        const [completedRes, watchingRes, planToWatchRes, onHoldRes, droppedRes] = await Promise.all([
+        const [completedMoviesRes, watchingMoviesRes, planToWatchMoviesRes, onHoldMoviesRes, droppedMoviesRes] = await Promise.all([
           axios.get(`/api/watchlist/completed/${user.id}`),
           axios.get(`/api/watchlist/watching/${user.id}`),
           axios.get(`/api/watchlist/plan-to-watch/${user.id}`),
@@ -51,11 +56,25 @@ const ProfilePage = () => {
           axios.get(`/api/watchlist/dropped/${user.id}`),
         ]);                
 
-        setCompletedList(completedRes.data);
-        setWatchingList(watchingRes.data);
-        setPlanToWatchList(planToWatchRes.data);
-        setOnHoldList(onHoldRes.data);
-        setDroppedList(droppedRes.data);
+        const [completedTVShowsRes, watchingTVShowsRes, planToWatchTVShowsRes, onHoldTVShowsRes, droppedTVShowsRes] = await Promise.all([
+          axios.get(`/api/tv-watchlist/completed/${user.id}`),
+          axios.get(`/api/tv-watchlist/watching/${user.id}`),
+          axios.get(`/api/tv-watchlist/plan-to-watch/${user.id}`),
+          axios.get(`/api/tv-watchlist/on-hold/${user.id}`),
+          axios.get(`/api/tv-watchlist/dropped/${user.id}`),
+        ]);
+
+        setCompletedList(completedMoviesRes.data);
+        setWatchingList(watchingMoviesRes.data);
+        setPlanToWatchList(planToWatchMoviesRes.data);
+        setOnHoldList(onHoldMoviesRes.data);
+        setDroppedList(droppedMoviesRes.data);
+
+        setCompletedTVShows(completedTVShowsRes.data);
+        setWatchingTVShows(watchingTVShowsRes.data);
+        setPlanToWatchTVShows(planToWatchTVShowsRes.data);
+        setOnHoldTVShows(onHoldTVShowsRes.data);
+        setDroppedTVShows(droppedTVShowsRes.data);
       } catch (error) {
         console.error('Error fetching watch lists:', error);
       }
@@ -73,6 +92,17 @@ const ProfilePage = () => {
         fetchWatchLists(); // Refresh the watchlists after removal
       } catch (error) {
          console.error('Error removing movie:', error.response ? error.response.data : error.message);
+      }
+    }
+  };
+
+  const handleRemoveTVShow = async (tvShowId, state) => {
+    if (user) {
+      try {
+        await axios.delete(`/api/tv-watchlist/${state.toLowerCase()}/${user.id}/${tvShowId}`);
+        fetchWatchLists(); // Refresh the watchlists after removal
+      } catch (error) {
+        console.error('Error removing TV show:', error.response ? error.response.data : error.message);
       }
     }
   };
@@ -107,37 +137,72 @@ const ProfilePage = () => {
               <Tab label="Dropped" />
             </Tabs>
             <TabPanel value={watchListTab} index={0}>
+              <Typography variant="h6" sx={{ mb: 2 }}>Completed Movies</Typography>
               <MovieCardList 
                 movies={completedList} 
                 onRemove={handleRemoveMovie}
                 isMobile={isMobile}
               />
+              <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>Completed TV Shows</Typography>
+              <TVShowCardList 
+                tvShows={completedTVShows} 
+                onRemove={handleRemoveTVShow}
+                isMobile={isMobile} 
+              />
             </TabPanel>
             <TabPanel value={watchListTab} index={1}>
+              <Typography variant="h6" sx={{ mb: 2 }}>Watching Movies</Typography>
               <MovieCardList 
                 movies={watchingList} 
                 onRemove={handleRemoveMovie}
                 isMobile={isMobile} 
               />
+              <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>Watching TV Shows</Typography>
+              <TVShowCardList 
+                tvShows={watchingTVShows} 
+                onRemove={handleRemoveTVShow}
+                isMobile={isMobile} 
+              />
             </TabPanel>
             <TabPanel value={watchListTab} index={2}>
+              <Typography variant="h6" sx={{ mb: 2 }}>Plan to Watch Movies</Typography>
               <MovieCardList 
                 movies={planToWatchList} 
                 onRemove={handleRemoveMovie}
                 isMobile={isMobile} 
               />
+              <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>Plan to Watch TV Shows</Typography>
+              <TVShowCardList 
+                tvShows={planToWatchTVShows} 
+                onRemove={handleRemoveTVShow}
+                isMobile={isMobile} 
+              />
             </TabPanel>
             <TabPanel value={watchListTab} index={3}>
+              <Typography variant="h6" sx={{ mb: 2 }}>On Hold Movies</Typography>
               <MovieCardList 
                 movies={onHoldList} 
                 onRemove={handleRemoveMovie}
                 isMobile={isMobile} 
               />
+              <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>On Hold TV Shows</Typography>
+              <TVShowCardList 
+                tvShows={onHoldTVShows} 
+                onRemove={handleRemoveTVShow}
+                isMobile={isMobile} 
+              />
             </TabPanel>
             <TabPanel value={watchListTab} index={4}>
+              <Typography variant="h6" sx={{ mb: 2 }}>Dropped Movies</Typography>
               <MovieCardList 
                 movies={droppedList} 
                 onRemove={handleRemoveMovie}
+                isMobile={isMobile} 
+              />
+              <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>Dropped TV Shows</Typography>
+              <TVShowCardList 
+                tvShows={droppedTVShows} 
+                onRemove={handleRemoveTVShow}
                 isMobile={isMobile} 
               />
             </TabPanel>
@@ -188,10 +253,14 @@ const TabPanel = (props) => {
   );
 };
 
+// Component to display a list of movie cards
 const MovieCardList = ({ movies, onRemove, isMobile }) => {
+  // Reverse the movies array to display the most recent first
+  const sortedMovies = [...movies].reverse();
+
   return (
-    <Grid container spacing={2}>    
-      {movies.map((movie) => (
+    <Grid container spacing={2}>
+      {sortedMovies.map((movie) => (
         <Grid item xs={12} sm={6} md={4} lg={3} key={movie.movie_id}>
           <Card>
             <CardMedia
@@ -207,6 +276,42 @@ const MovieCardList = ({ movies, onRemove, isMobile }) => {
                   variant="contained" 
                   color="error"
                   onClick={() => onRemove(movie.movie_id, movie.state)}
+                  sx={{ mt: 2 }} // Margin top of 2 spacing units
+                >
+                  Remove
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </Grid>
+      ))}
+    </Grid>
+  );
+};
+
+// Component to display a list of TV show cards
+const TVShowCardList = ({ tvShows, onRemove, isMobile }) => {
+  // Reverse the tvShows array to display the most recent first
+  const sortedTVShows = [...tvShows].reverse();
+
+  return (
+    <Grid container spacing={2}>
+      {sortedTVShows.map((tvShow) => (
+        <Grid item xs={12} sm={6} md={4} lg={3} key={tvShow.tv_show_id}>
+          <Card>
+            <CardMedia
+              component="img"
+              height="400"
+              image={tvShow.image_path}
+              alt={tvShow.title}
+            />
+            <CardContent>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                <Typography variant={isMobile ? 'h7' : 'h6'}>{tvShow.title}</Typography>
+                <Button 
+                  variant="contained" 
+                  color="error"
+                  onClick={() => onRemove(tvShow.tv_show_id, tvShow.state)}
                   sx={{ mt: 2 }} // Margin top of 2 spacing units
                 >
                   Remove
