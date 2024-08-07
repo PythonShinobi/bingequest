@@ -16,11 +16,14 @@ import {
   Skeleton,
   Pagination,
   Fab,
+  Menu,
+  MenuItem
 } from "@mui/material";
 
 import "./Movie.css";
 import Navbar from "../navbar/Navbar";
 import FilterComponent from "../components/Filters";
+import useIsAuthenticated from "../redux/authHook";
 
 // Define a function to scale vote average to a star rating
 const getStarRating = (voteAverage) => {
@@ -37,11 +40,18 @@ const TopRatedMovies = () => {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({});
   const [showBackToTop, setShowBackToTop] = useState(false); // State to show Back to Top button
+  const [movieStates, setMovieStates] = useState({}); // State for movie categorization
+  const [anchorEl, setAnchorEl] = useState(null); // For menu
+  const [currentMovieId, setCurrentMovieId] = useState(null); // Current movie id for categorization
+  const [currentTitle, setCurrentTitle] = useState(null);
+  const [currentImage, setCurrentImage] = useState(null);
 
   const navigate = useNavigate();
   const location = useLocation();
   const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens
+  const isAuthenticated = useIsAuthenticated();
 
+  // Fetch top rated movies with caching
   const fetchTopRatedMovies = useCallback(async (page, filters) => {
     const cacheKey = `${page}-${JSON.stringify(filters)}`;
     if (movieCache[cacheKey]) {
@@ -70,9 +80,52 @@ const TopRatedMovies = () => {
     }
   }, []);
 
+  // Handle card click navigation
   const handleCardClick = useCallback((movieId) => {
     navigate(`/movie/${movieId}`);
   }, [navigate]);
+
+  // Handle movie state change
+  const handleMovieStateChange = useCallback((event, movieId, title, image) => {
+    event.stopPropagation(); // Prevent navigation on state change click
+    if (isAuthenticated) {
+      setAnchorEl(event.currentTarget);
+      setCurrentMovieId(movieId);
+      setCurrentTitle(title);
+      setCurrentImage(image);
+    } else {
+      navigate('/login'); // Redirect to login if not authenticated
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Handle menu close and update movie state
+  const handleMenuClose = (state) => {
+    if (isAuthenticated && currentMovieId !== null) {
+      setMovieStates(prevStates => ({
+        ...prevStates,
+        [currentMovieId]: state
+      }));
+
+      const user_id = isAuthenticated.id;
+
+      // Make the API call to update the state in the backend
+      axios.post('/api/set_movie_state', {
+        user_id: user_id,
+        movie_id: currentMovieId,
+        state: state,
+        title: currentTitle,
+        image: currentImage
+      })
+      .then(response => {
+        console.log(response.data.message);
+      })
+      .catch(error => {
+        console.error("Error updating movie state:", error);
+      });
+    }
+    setAnchorEl(null);
+    setCurrentMovieId(null);
+  };
 
   const updateURL = (page, filters) => {
     const queryParams = new URLSearchParams();
@@ -113,8 +166,24 @@ const TopRatedMovies = () => {
     // Fetch movies from cache or API
     fetchTopRatedMovies(page, filters);
 
+    // Fetch movie states if authenticated
+    if (isAuthenticated) {
+      const user_id = isAuthenticated.id;
+      axios.get(`/api/get_movie_states/${user_id}`)
+        .then(response => {
+          const states = response.data.reduce((acc, item) => {
+            acc[item.movie_id] = item.state;
+            return acc;
+          }, {});
+          setMovieStates(states);
+        })
+        .catch(error => {
+          console.error("Error fetching movie states:", error);
+        });
+    }
+
     window.scrollTo(0, 0); // Scroll to the top of the page on page change
-  }, [location.search, fetchTopRatedMovies]);
+  }, [location.search, fetchTopRatedMovies, isAuthenticated]);
 
   const memoizedMovies = useMemo(
     () =>
@@ -138,17 +207,25 @@ const TopRatedMovies = () => {
               <Typography variant="body2">
                 {movie.vote_average} ({movie.vote_count} votes)
               </Typography>
+              <Stack direction="row" spacing={1} sx={{ marginTop: 1 }}>
+                <Button
+                  variant="outlined"
+                  onClick={(e) => handleMovieStateChange(e, movie.id, movie.title, `https://image.tmdb.org/t/p/w500${movie.poster_path}`)}
+                >
+                  {movieStates[movie.id] || 'Set State'}
+                </Button>
+              </Stack>
             </CardContent>
           </Card>
         </Grid>
       )),
-    [movies, handleCardClick]
+    [movies, handleCardClick, movieStates, handleMovieStateChange]
   );
 
   const handleScrollToTop = () => {
     window.scrollTo({
       top: 0,
-      behavior: "smooth"
+      behavior: "smooth",
     });
   };
 
@@ -161,8 +238,8 @@ const TopRatedMovies = () => {
   };
 
   useEffect(() => {
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
@@ -173,14 +250,15 @@ const TopRatedMovies = () => {
           onApplyFilters={handleApplyFilters}
           sortOptions={topRatedSortOptions}
         />
-        <Typography 
+        <Typography
           variant={isSmallScreen ? 'h4' : 'h3'}
-          align="center" 
-          gutterBottom 
-          sx={{ marginTop: "50px", marginBottom: "30px"}}
+          align="center"
+          gutterBottom
+          sx={{ marginTop: "50px", marginBottom: "30px" }}
         >
           Top Rated Movies
         </Typography>
+
         <Grid container spacing={2} justifyContent="center">
           {loading
             ? Array.from(new Array(20)).map((_, index) => (
@@ -237,6 +315,19 @@ const TopRatedMovies = () => {
             </Fab>
           </div>
         )}
+
+        {/* Menu for selecting movie state */}
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={() => setAnchorEl(null)}
+        >
+          <MenuItem onClick={() => handleMenuClose("Completed")}>Completed</MenuItem>
+          <MenuItem onClick={() => handleMenuClose("Watching")}>Watching</MenuItem>
+          <MenuItem onClick={() => handleMenuClose("Plan to Watch")}>Plan to Watch</MenuItem>
+          <MenuItem onClick={() => handleMenuClose("On Hold")}>On Hold</MenuItem>
+          <MenuItem onClick={() => handleMenuClose("Dropped")}>Dropped</MenuItem>
+        </Menu>
       </div>
     </div>
   );

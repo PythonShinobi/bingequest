@@ -16,11 +16,14 @@ import {
   Skeleton,
   Pagination,
   Fab,
+  Menu,
+  MenuItem,  
 } from "@mui/material";
 
 import "./Movie.css";
 import Navbar from "../navbar/Navbar";
 import FilterComponent from "../components/Filters";
+import useIsAuthenticated from "../redux/authHook";
 
 // Define a function to scale vote average to a star rating
 const getStarRating = (voteAverage) => {
@@ -37,10 +40,16 @@ const UpcomingMovies = () => {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({});
   const [showBackToTop, setShowBackToTop] = useState(false); // State to show Back to Top button
+  const [movieStates, setMovieStates] = useState({}); // State for movie categorization
+  const [anchorEl, setAnchorEl] = useState(null); // For menu
+  const [currentMovieId, setCurrentMovieId] = useState(null); // Current movie id for categorization
+  const [currentTitle, setCurrentTitle] = useState(null);
+  const [currentImage, setCurrentImage] = useState(null);
 
   const navigate = useNavigate();
   const location = useLocation();
   const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens
+  const isAuthenticated = useIsAuthenticated();
 
   const fetchUpcomingMovies = useCallback(async (page, filters) => {
     const cacheKey = `${page}-${JSON.stringify(filters)}`;
@@ -70,6 +79,22 @@ const UpcomingMovies = () => {
     }
   }, []);
 
+  const fetchMovieStates = useCallback(async () => {
+    if (isAuthenticated) {
+      const user_id = isAuthenticated.id;
+      try {
+        const response = await axios.get(`/api/get_movie_states/${user_id}`);
+        const states = response.data.reduce((acc, item) => {
+          acc[item.movie_id] = item.state;
+          return acc;
+        }, {});
+        setMovieStates(states);
+      } catch (error) {
+        console.error("Error fetching movie states:", error);
+      }
+    }
+  }, [isAuthenticated]);
+
   const handleCardClick = useCallback((movieId) => {
     navigate(`/movie/${movieId}`);
   }, [navigate]);
@@ -92,6 +117,47 @@ const UpcomingMovies = () => {
     updateURL(1, newFilters);
   };
 
+  const handleMovieStateChange = useCallback((event, movieId, title, image) => {
+    event.stopPropagation(); // Prevent navigation on state change click
+    if (isAuthenticated) {
+      setAnchorEl(event.currentTarget);
+      setCurrentMovieId(movieId);
+      setCurrentTitle(title);
+      setCurrentImage(image);
+    } else {
+      navigate('/login'); // Redirect to login if not authenticated
+    }
+  }, [isAuthenticated, navigate]);
+
+  const handleMenuClose = (state) => {
+    if (isAuthenticated && currentMovieId !== null) {
+      // Update the state locally
+      setMovieStates(prevStates => ({
+        ...prevStates,
+        [currentMovieId]: state
+      }));
+
+      const user_id = isAuthenticated.id;
+
+      // Make the API call to update the state in the backend
+      axios.post('/api/set_movie_state', {
+        user_id: user_id,
+        movie_id: currentMovieId,
+        state: state,
+        title: currentTitle,
+        image: currentImage
+      })
+      .then(response => {
+        console.log(response.data.message);
+      })
+      .catch(error => {
+        console.error("Error updating movie state:", error);
+      });
+    }
+    setAnchorEl(null);
+    setCurrentMovieId(null);
+  };
+
   const upcomingSortOptions = useMemo(
     () => [
       { value: "release_date.desc", label: "Upcoming Releases" },
@@ -110,8 +176,11 @@ const UpcomingMovies = () => {
     // Fetch movies from cache or API
     fetchUpcomingMovies(page, filters);
 
+    // Fetch movie states if authenticated
+    fetchMovieStates();
+
     window.scrollTo(0, 0);
-  }, [location.search, fetchUpcomingMovies]);
+  }, [location.search, fetchUpcomingMovies, fetchMovieStates]);
 
   const memoizedMovies = useMemo(
     () =>
@@ -135,11 +204,19 @@ const UpcomingMovies = () => {
               <Typography variant="body2">
                 {movie.vote_average} ({movie.vote_count} votes)
               </Typography>
+              <Stack direction="row" spacing={1} sx={{ marginTop: 1 }}>
+                <Button
+                  variant="outlined"
+                  onClick={(e) => handleMovieStateChange(e, movie.id, movie.title, `https://image.tmdb.org/t/p/w500${movie.poster_path}`)}
+                >
+                  {movieStates[movie.id] || 'Set State'}
+                </Button>
+              </Stack>
             </CardContent>
           </Card>
         </Grid>
       )),
-    [movies, handleCardClick]
+    [movies, handleCardClick, movieStates, handleMovieStateChange]
   );
 
   const handleScrollToTop = () => {
@@ -179,61 +256,43 @@ const UpcomingMovies = () => {
           Upcoming Movies
         </Typography>
         <Grid container spacing={2} justifyContent="center">
-          {loading
-            ? Array.from(new Array(20)).map((_, index) => (
-                <Grid item xs={12} sm={6} md={3} key={index}>
-                  <Card>
-                    <Skeleton variant="rectangular" height={300} />
-                    <CardContent>
-                      <Skeleton variant="text" />
-                      <Skeleton variant="text" />
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))
-            : memoizedMovies}
+          {loading ? (
+            Array.from(new Array(12)).map((_, index) => (
+              <Grid item xs={12} sm={6} md={3} key={index}>
+                <Skeleton variant="rectangular" height={450} />
+              </Grid>
+            ))
+          ) : memoizedMovies}
         </Grid>
-        <Stack
-          direction="row"
-          justifyContent="center"
-          alignItems="center"
-          spacing={2}
-          sx={{ marginTop: "20px" }}
-        >
-          <Button
-            variant="contained"
-            onClick={() => handlePageChange(null, currentPage - 1)}
-            disabled={currentPage === 1 || loading}
-          >
-            Previous
-          </Button>
-          <Pagination
-            count={totalPages}
-            page={currentPage}
-            onChange={handlePageChange}
-            siblingCount={0}
-            boundaryCount={1}
-            shape="rounded"
-            size="small"
-            disabled={loading}
-          />
-          <Button
-            variant="contained"
-            onClick={() => handlePageChange(null, currentPage + 1)}
-            disabled={currentPage === totalPages || loading}
-          >
-            Next
-          </Button>
-        </Stack>
-        
-        {/* Back to Top Button */}
+        <Pagination
+          count={totalPages}
+          page={currentPage}
+          onChange={handlePageChange}
+          sx={{ marginTop: "20px", marginBottom: "20px" }}
+        />
         {showBackToTop && (
-          <div className="back-to-top">
-            <Fab color="primary" size="large" onClick={handleScrollToTop}>
-              <KeyboardArrowUpIcon />
-            </Fab>
-          </div>
+          <Fab 
+            color="primary" 
+            aria-label="scroll back to top" 
+            onClick={handleScrollToTop} 
+            sx={{ position: 'fixed', bottom: 16, right: 16 }}
+          >
+            <KeyboardArrowUpIcon />
+          </Fab>
         )}
+
+        {/* Movie State Menu */}
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={() => setAnchorEl(null)}
+        >
+          <MenuItem onClick={() => handleMenuClose("Completed")}>Completed</MenuItem>
+          <MenuItem onClick={() => handleMenuClose("Watching")}>Watching</MenuItem>
+          <MenuItem onClick={() => handleMenuClose("Plan to Watch")}>Plan to Watch</MenuItem>
+          <MenuItem onClick={() => handleMenuClose("On Hold")}>On Hold</MenuItem>
+          <MenuItem onClick={() => handleMenuClose("Dropped")}>Dropped</MenuItem>
+        </Menu>
       </div>
     </div>
   );
