@@ -4,22 +4,25 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from "axios";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { 
-  Grid, 
-  Card, 
-  CardMedia, 
-  CardContent, 
-  Typography, 
-  Rating, 
-  Button, 
-  Stack, 
-  Skeleton, 
-  Pagination, 
-  Fab   
+import {
+  Grid,
+  Card,
+  CardMedia,
+  CardContent,
+  Typography,
+  Rating,
+  Button,
+  Stack,
+  Skeleton,
+  Pagination,
+  Fab,
+  Menu,
+  MenuItem
 } from "@mui/material";
 
 import "./AiringToday.css";
 import Navbar from "../navbar/Navbar";
+import useIsAuthenticated from "../redux/authHook";
 
 // Define a function to scale vote average to a star rating
 const getStarRating = (voteAverage) => {
@@ -35,10 +38,16 @@ const AiringToday = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [showBackToTop, setShowBackToTop] = useState(false); // State to show Back to Top button
+  const [showStates, setShowStates] = useState({}); // State for TV show categorization
+  const [anchorEl, setAnchorEl] = useState(null); // For menu
+  const [currentShowId, setCurrentShowId] = useState(null); // Current show id for categorization
+  const [currentTitle, setCurrentTitle] = useState(null);
+  const [currentImage, setCurrentImage] = useState(null);
 
   const navigate = useNavigate();
   const location = useLocation();
   const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens
+  const isAuthenticated = useIsAuthenticated();
 
   // Fetch airing today TV shows with caching
   const fetchAiringTodayTVShows = useCallback(async (page) => {
@@ -69,6 +78,23 @@ const AiringToday = () => {
     }
   }, []);
 
+  // Fetch TV show states if authenticated
+  const fetchShowStates = useCallback(async () => {
+    if (isAuthenticated) {
+      const user_id = isAuthenticated.id;
+      try {
+        const response = await axios.get(`/api/get_tv_show_states/${user_id}`);
+        const states = response.data.reduce((acc, item) => {
+          acc[item.tv_show_id] = item.state;
+          return acc;
+        }, {});
+        setShowStates(states);
+      } catch (error) {
+        console.error("Error fetching TV show states:", error);
+      }
+    }
+  }, [isAuthenticated]);
+
   // Handle page change and update URL
   const handlePageChange = (event, newPage) => {
     setCurrentPage(newPage);
@@ -80,14 +106,58 @@ const AiringToday = () => {
     navigate(`/tv-show/${showId}`);
   }, [navigate]);
 
-  // Load TV shows based on URL parameters
+  // Handle TV show state change
+  const handleShowStateChange = useCallback((event, showId, title, image) => {
+    event.stopPropagation(); // Prevent navigation on state change click
+    if (isAuthenticated) {
+      setAnchorEl(event.currentTarget);
+      setCurrentShowId(showId);
+      setCurrentTitle(title);
+      setCurrentImage(image);
+    } else {
+      navigate('/login'); // Redirect to login if not authenticated
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Handle menu close and update show state
+  const handleMenuClose = (state) => {
+    if (isAuthenticated && currentShowId !== null) {
+      // Update the state locally
+      setShowStates(prevStates => ({
+        ...prevStates,
+        [currentShowId]: state
+      }));
+
+      const user_id = isAuthenticated.id;
+
+      // Make the API call to update the state in the backend
+      axios.post('/api/set_tv_show_state', {
+        user_id: user_id, // You need to get the current user ID
+        tv_show_id: currentShowId,
+        state: state,
+        title: currentTitle,
+        image: currentImage
+      })
+      .then(response => {
+        console.log(response.data.message);
+      })
+      .catch(error => {
+        console.error("Error updating TV show state:", error);
+      });
+    }
+    setAnchorEl(null);
+    setCurrentShowId(null);
+  };
+
+  // Load TV shows and states based on URL parameters
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     const page = parseInt(queryParams.get('page')) || 1;
     setCurrentPage(page);
     fetchAiringTodayTVShows(page);
+    fetchShowStates();
     window.scrollTo(0, 0); // Scroll to the top of the page on page change
-  }, [location.search, fetchAiringTodayTVShows]);
+  }, [location.search, fetchAiringTodayTVShows, fetchShowStates]);
 
   const memoizedShows = useMemo(
     () =>
@@ -111,11 +181,19 @@ const AiringToday = () => {
               <Typography variant="body2">
                 {show.vote_average} ({show.vote_count} votes)
               </Typography>
+              <Stack direction="row" spacing={1} sx={{ marginTop: 1 }}>
+                <Button
+                  variant="outlined"
+                  onClick={(e) => handleShowStateChange(e, show.id, show.name, `https://image.tmdb.org/t/p/w500${show.poster_path}`)}
+                >
+                  {showStates[show.id] || 'Set State'}
+                </Button>
+              </Stack>
             </CardContent>
           </Card>
         </Grid>
       )),
-    [shows, handleCardClick]
+    [shows, handleCardClick, showStates, handleShowStateChange]
   );
 
   const handleScrollToTop = () => {
@@ -197,16 +275,28 @@ const AiringToday = () => {
             Next
           </Button>
         </Stack>
-
-        {/* Back to Top Button */}
-        {showBackToTop && (
-          <div className="back-to-top">
-            <Fab color="primary" size="large" onClick={handleScrollToTop}>
-              <KeyboardArrowUpIcon />
-            </Fab>
-          </div>
-        )}
       </div>
+      {showBackToTop && (
+        <Fab
+          color="primary"
+          aria-label="scroll back to top"
+          onClick={handleScrollToTop}
+          sx={{ position: 'fixed', bottom: '20px', right: '20px' }}
+        >
+          <KeyboardArrowUpIcon />
+        </Fab>
+      )}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={() => handleMenuClose(null)}
+      >
+        <MenuItem onClick={() => handleMenuClose("Completed")}>Completed</MenuItem>
+        <MenuItem onClick={() => handleMenuClose("Watching")}>Watching</MenuItem>
+        <MenuItem onClick={() => handleMenuClose("Plan to Watch")}>Plan to Watch</MenuItem>
+        <MenuItem onClick={() => handleMenuClose("On Hold")}>On Hold</MenuItem>
+        <MenuItem onClick={() => handleMenuClose("Dropped")}>Dropped</MenuItem>
+      </Menu>
     </div>
   );
 };

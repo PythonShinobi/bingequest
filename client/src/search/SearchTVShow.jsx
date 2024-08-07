@@ -21,11 +21,14 @@ import {
   Card,
   CardContent,
   CardMedia,
-  Rating
+  Rating,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 
 import "./SearchTVShow.css";
 import Navbar from "../navbar/Navbar";
+import useIsAuthenticated from "../redux/authHook";
 
 // Define a function to scale vote average to a star rating
 const getStarRating = (voteAverage) => {
@@ -37,14 +40,20 @@ const searchCache = {};
 const SearchTVShow = () => {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(true); // Set loading to true initially
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [searchPerformed, setSearchPerformed] = useState(false);
+  const [tvShowStates, setTvShowStates] = useState({});
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [currentTvShowId, setCurrentTvShowId] = useState(null);
+  const [currentTitle, setCurrentTitle] = useState(null);
+  const [currentImage, setCurrentImage] = useState(null);
 
   const navigate = useNavigate();
   const location = useLocation();
+  const isAuthenticated = useIsAuthenticated();
 
   const fetchSearchResults = useCallback(async (query, page) => {
     const cacheKey = `${query}-${page}`;
@@ -74,11 +83,26 @@ const SearchTVShow = () => {
     }
   }, []);
 
-  const handleSearch = async (e, page=1) => {
+  const fetchTvShowStates = useCallback(async () => {
+    if (isAuthenticated) {
+      const user_id = isAuthenticated.id;
+      try {
+        const response = await axios.get(`/api/get_tv_show_states/${user_id}`);
+        const states = response.data.reduce((acc, item) => {
+          acc[item.tv_show_id] = item.state;
+          return acc;
+        }, {});
+        setTvShowStates(states);
+      } catch (error) {
+        console.error("Error fetching TV show states:", error);
+      }
+    }
+  }, [isAuthenticated]);
+
+  const handleSearch = async (e, page = 1) => {
     if (e) e.preventDefault();
     setSearchPerformed(true);
     fetchSearchResults(query, page);
-    // Update the URL with the search query and page number
     navigate(`?query=${encodeURIComponent(query)}&page=${page}`);
     window.scrollTo(0, 0);
   };
@@ -93,19 +117,42 @@ const SearchTVShow = () => {
     navigate(`/tv-show/${tvShowId}`);
   };
 
-  const handleScrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  };
-
-  const handleScroll = () => {
-    if (window.scrollY > 100) {
-      setShowBackToTop(true);
+  const handleTvShowStateChange = useCallback((event, tvShowId, title, image) => {
+    event.stopPropagation();
+    if (isAuthenticated) {
+      setAnchorEl(event.currentTarget);
+      setCurrentTvShowId(tvShowId);
+      setCurrentTitle(title);
+      setCurrentImage(image);
     } else {
-      setShowBackToTop(false);
+      navigate('/login');
     }
+  }, [isAuthenticated, navigate]);
+
+  const handleMenuClose = (state) => {
+    if (isAuthenticated && currentTvShowId !== null) {
+      setTvShowStates(prevStates => ({
+        ...prevStates,
+        [currentTvShowId]: state
+      }));
+
+      const user_id = isAuthenticated.id;
+      axios.post('/api/set_tv_show_state', {
+        user_id: user_id,
+        tv_show_id: currentTvShowId,
+        state: state,
+        title: currentTitle,
+        image: currentImage
+      })
+      .then(response => {
+        console.log(response.data.message);
+      })
+      .catch(error => {
+        console.error("Error updating TV show state:", error);
+      });
+    }
+    setAnchorEl(null);
+    setCurrentTvShowId(null);
   };
 
   useEffect(() => {
@@ -122,15 +169,34 @@ const SearchTVShow = () => {
     setCurrentPage(page);
 
     if (query) {
-      setLoading(true); // Show loading state when navigating back
+      setLoading(true);
       fetchSearchResults(query, page);
     } else {
-      setResults([]); // Clear results if no query
-      setLoading(false); // Reset loading state if no query
+      setResults([]);
+      setLoading(false);
     }
-  }, [location.search, fetchSearchResults]);
+
+    if (isAuthenticated) {
+      fetchTvShowStates();
+    }
+  }, [location.search, fetchSearchResults, fetchTvShowStates, isAuthenticated]);
 
   const memoizedResults = useMemo(() => results, [results]);
+
+  const handleScrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  const handleScroll = () => {
+    if (window.scrollY > 100) {
+      setShowBackToTop(true);
+    } else {
+      setShowBackToTop(false);
+    }
+  };
 
   return (
     <div className="search-tv-shows">
@@ -138,10 +204,7 @@ const SearchTVShow = () => {
         <Navbar />
         <form
           onSubmit={(e) => handleSearch(e, 1)}
-          style={{
-            marginTop: "120px",
-            marginBottom: "20px"
-          }}
+          style={{ marginTop: "120px", marginBottom: "20px" }}
         >
           <TextField
             fullWidth
@@ -178,90 +241,74 @@ const SearchTVShow = () => {
             </Grid>
           ) : (
             memoizedResults.length > 0 ? (
-              <>
-                <Grid container spacing={3}>
-                  {memoizedResults.map((show) => (
-                    <Grid item xs={12} sm={6} md={4} lg={3} key={show.id}>
-                      <Card sx={{ bgcolor: 'background.paper' }} onClick={() => handleCardClick(show.id)} style={{ cursor: 'pointer' }}>
-                        <CardMedia
-                          component="img"
-                          image={`https://image.tmdb.org/t/p/w500${show.poster_path}`}
-                          alt={show.name}
-                          height="450"
+              <Grid container spacing={3}>
+                {memoizedResults.map((show) => (
+                  <Grid item xs={12} sm={6} md={4} lg={3} key={show.id}>
+                    <Card sx={{ bgcolor: 'background.paper' }} onClick={() => handleCardClick(show.id)} style={{ cursor: 'pointer' }}>
+                      <CardMedia
+                        component="img"
+                        image={`https://image.tmdb.org/t/p/w500${show.poster_path}`}
+                        alt={show.name}
+                        height="450"
+                      />
+                      <CardContent>
+                        <Typography variant="h6" gutterBottom>{show.name}</Typography>
+                        <Rating
+                          value={getStarRating(show.vote_average)}
+                          precision={0.1}
+                          readOnly
                         />
-                        <CardContent>
-                          <Typography variant="h6" gutterBottom>{show.name}</Typography>
-                          <Rating
-                            value={getStarRating(show.vote_average)}
-                            precision={0.1}
-                            readOnly
-                          />
-                          <Typography variant="body2">
-                            {show.vote_average} ({show.vote_count} votes)
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  ))}
-                </Grid>
-                <Stack
-                  direction="row"
-                  justifyContent="center"
-                  alignItems="center"
-                  spacing={2}
-                  sx={{ marginTop: "20px" }}
-                >
-                  <Button
-                    variant="contained"
-                    onClick={() => handlePageChange(null, currentPage - 1)}
-                    disabled={currentPage === 1 || loading}
-                    sx={{
-                      bgcolor: 'primary.main',
-                      color: 'background.paper',
-                      '&:hover': { bgcolor: 'primary.dark' }
-                    }}
-                  >
-                    Previous
-                  </Button>
-                  <Pagination
-                    count={totalPages}
-                    page={currentPage}
-                    onChange={handlePageChange}
-                    siblingCount={0}
-                    boundaryCount={1}
-                    shape="rounded"
-                    size="small"
-                    disabled={loading}                    
-                  />
-                  <Button
-                    variant="contained"
-                    onClick={() => handlePageChange(null, currentPage + 1)}
-                    disabled={currentPage === totalPages || loading}
-                    sx={{
-                      bgcolor: 'primary.main',
-                      color: 'background.paper',
-                      '&:hover': { bgcolor: 'primary.dark' }
-                    }}
-                  >
-                    Next
-                  </Button>
-                </Stack>
-              </>
+                        <Typography variant="body2">
+                          {show.vote_average} ({show.vote_count} votes)
+                        </Typography>
+                        <Stack direction="row" spacing={1} sx={{ marginTop: 1 }}>
+                          <Button variant="outlined" onClick={(e) => handleTvShowStateChange(e, show.id, show.name, `https://image.tmdb.org/t/p/w500${show.poster_path}`)}>
+                            {tvShowStates[show.id] || "Set State"}
+                          </Button>
+                        </Stack>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
             ) : (
-              searchPerformed && <Typography>No results found</Typography>
+              searchPerformed && <Typography variant="h6" align="center" sx={{ marginTop: 4 }}>No TV shows found</Typography>
             )
           )}
+          {totalPages > 1 && (
+            <Stack spacing={2} alignItems="center" sx={{ marginTop: 4 }}>
+              <Pagination
+                count={totalPages}
+                page={currentPage}
+                onChange={handlePageChange}
+                variant="outlined"
+                shape="rounded"
+              />
+            </Stack>
+          )}
         </Box>
-        
-        {/* Back to Top Button */}
         {showBackToTop && (
-          <div className="back-to-top" style={{ position: 'fixed', bottom: '58px', right: '30px' }}>
-            <Fab color="primary" size="large" onClick={handleScrollToTop}>
-              <KeyboardArrowUpIcon />
-            </Fab>
-          </div>
+          <Fab
+            color="primary"
+            aria-label="back to top"
+            sx={{ position: 'fixed', bottom: 16, right: 16 }}
+            onClick={handleScrollToTop}
+          >
+            <KeyboardArrowUpIcon />
+          </Fab>
         )}
       </Container>
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={() => setAnchorEl(null)}
+      >
+        <MenuItem onClick={() => handleMenuClose("Completed")}>Completed</MenuItem>
+        <MenuItem onClick={() => handleMenuClose("Watching")}>Watching</MenuItem>
+        <MenuItem onClick={() => handleMenuClose("Plan to Watch")}>Plan to Watch</MenuItem>
+        <MenuItem onClick={() => handleMenuClose("On Hold")}>On Hold</MenuItem>
+        <MenuItem onClick={() => handleMenuClose("Dropped")}>Dropped</MenuItem>
+      </Menu>
     </div>
   );
 };

@@ -16,11 +16,14 @@ import {
   Skeleton,
   Pagination,
   Fab,
+  Menu,
+  MenuItem,  
 } from "@mui/material";
 
 import "./Shows.css";
 import Navbar from "../navbar/Navbar";
 import SeriesFilterComponent from "../components/SeriesFilters";
+import useIsAuthenticated from "../redux/authHook";
 
 // Define a function to scale vote average to a star rating
 const getStarRating = (voteAverage) => {
@@ -37,10 +40,16 @@ const PopularTVShows = () => {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({});
   const [showBackToTop, setShowBackToTop] = useState(false); // State to show Back to Top button
+  const [showStates, setShowStates] = useState({}); // New state for show categorization
+  const [anchorEl, setAnchorEl] = useState(null); // For menu
+  const [currentShowId, setCurrentShowId] = useState(null); // Current show id for categorization
+  const [currentTitle, setCurrentTitle] = useState(null);
+  const [currentImage, setCurrentImage] = useState(null);
 
   const navigate = useNavigate();
   const location = useLocation();
   const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens
+  const isAuthenticated = useIsAuthenticated();
 
   const fetchPopularTVShows = useCallback(async (page, filters) => {
     const cacheKey = `${page}-${JSON.stringify(filters)}`;
@@ -111,8 +120,66 @@ const PopularTVShows = () => {
     // Fetch shows from cache or API
     fetchPopularTVShows(page, filters);
 
+    // Fetch show states if authenticated
+    if (isAuthenticated) {
+      const user_id = isAuthenticated.id;
+      axios.get(`/api/get_tv_show_states/${user_id}`)
+        .then(response => {
+          const states = response.data.reduce((acc, item) => {
+            acc[item.tv_show_id] = item.state;
+            return acc;
+          }, {});
+          setShowStates(states);
+        })
+        .catch(error => {
+          console.error("Error fetching show states:", error);
+        });
+    }
+
     window.scrollTo(0, 0);
-  }, [location.search, fetchPopularTVShows]);
+  }, [location.search, fetchPopularTVShows, isAuthenticated]);
+  
+  // Handle show state change
+  const handleShowStateChange = useCallback((event, showId, title, image) => {
+    event.stopPropagation(); // Prevent navigation on state change click
+    if (isAuthenticated) {
+      setAnchorEl(event.currentTarget);
+      setCurrentShowId(showId);
+      setCurrentTitle(title);
+      setCurrentImage(image);
+    } else {
+      navigate('/login'); // Redirect to login if not authenticated
+    }
+  }, [isAuthenticated, navigate]);
+
+  const handleMenuClose = (state) => {
+    if (isAuthenticated && currentShowId !== null) {
+      // Update the state locally
+      setShowStates(prevStates => ({
+        ...prevStates,
+        [currentShowId]: state
+      }));
+
+      const user_id = isAuthenticated.id;
+
+      // Make the API call to update the state in the backend
+      axios.post('/api/set_tv_show_state', {
+        user_id: user_id, // You need to get the current user ID
+        tv_show_id: currentShowId,
+        state: state,
+        title: currentTitle,
+        image: currentImage
+      })
+      .then(response => {
+        console.log(response.data.message);
+      })
+      .catch(error => {
+        console.error("Error updating show state:", error);
+      });
+    }
+    setAnchorEl(null);
+    setCurrentShowId(null);
+  };
 
   const memoizedShows = useMemo(
     () =>
@@ -136,11 +203,16 @@ const PopularTVShows = () => {
               <Typography variant="body2">
                 {show.vote_average} ({show.vote_count} votes)
               </Typography>
+              <Stack direction="row" spacing={1} sx={{ marginTop: 1 }}>
+                <Button variant="outlined" onClick={(e) => handleShowStateChange(e, show.id, show.name, `https://image.tmdb.org/t/p/w500${show.poster_path}`)}>
+                  {showStates[show.id] || 'Set State'}
+                </Button>
+              </Stack>
             </CardContent>
           </Card>
         </Grid>
       )),
-    [shows, handleCardClick]
+    [shows, handleCardClick, showStates, handleShowStateChange]
   );
 
   const handleScrollToTop = () => {
@@ -184,58 +256,47 @@ const PopularTVShows = () => {
             ? Array.from(new Array(20)).map((_, index) => (
                 <Grid item xs={12} sm={6} md={3} key={index}>
                   <Card>
-                    <Skeleton variant="rectangular" height={300} />
+                    <Skeleton variant="rectangular" height={450} />
                     <CardContent>
-                      <Skeleton variant="text" />
-                      <Skeleton variant="text" />
+                      <Skeleton />
+                      <Skeleton width="60%" />
+                      <Skeleton width="40%" />
                     </CardContent>
                   </Card>
                 </Grid>
               ))
-            : memoizedShows}
+            : memoizedShows
+          }
         </Grid>
-        <Stack
-          direction="row"
-          justifyContent="center"
-          alignItems="center"
-          spacing={2}
-          sx={{ marginTop: "20px" }}
-        >
-          <Button
-            variant="contained"
-            onClick={() => handlePageChange(null, currentPage - 1)}
-            disabled={currentPage === 1 || loading}
-          >
-            Previous
-          </Button>
-          <Pagination
-            count={totalPages}
-            page={currentPage}
-            onChange={handlePageChange}
-            siblingCount={0}
-            boundaryCount={1}
-            shape="rounded"
-            size="small"
-            disabled={loading}
-          />
-          <Button
-            variant="contained"
-            onClick={() => handlePageChange(null, currentPage + 1)}
-            disabled={currentPage === totalPages || loading}
-          >
-            Next
-          </Button>
-        </Stack>
-        
-        {/* Back to Top Button */}
+        <Pagination
+          count={totalPages}
+          page={currentPage}
+          onChange={handlePageChange}
+          sx={{ marginTop: 3, display: 'flex', justifyContent: 'center' }}
+        />
         {showBackToTop && (
-          <div className="back-to-top">
-            <Fab color="primary" size="large" onClick={handleScrollToTop}>
-              <KeyboardArrowUpIcon />
-            </Fab>
-          </div>
+          <Fab
+            color="primary"
+            aria-label="scroll back to top"
+            className="back-to-top"
+            onClick={handleScrollToTop}
+          >
+            <KeyboardArrowUpIcon />
+          </Fab>
         )}
       </div>
+
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={() => setAnchorEl(null)}
+      >
+        <MenuItem onClick={() => handleMenuClose("Completed")}>Completed</MenuItem>
+        <MenuItem onClick={() => handleMenuClose("Watching")}>Watching</MenuItem>
+        <MenuItem onClick={() => handleMenuClose("Plan to Watch")}>Plan to Watch</MenuItem>
+        <MenuItem onClick={() => handleMenuClose("On Hold")}>On Hold</MenuItem>
+        <MenuItem onClick={() => handleMenuClose("Dropped")}>Dropped</MenuItem>
+      </Menu>
     </div>
   );
 };
