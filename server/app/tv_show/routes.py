@@ -1,8 +1,11 @@
 import requests
 from flask import jsonify, request
+from urllib.parse import unquote
 
+from app import db
 from app.tv_show import bp
 from config import Config
+from app.models import TVShowState
 
 @bp.route('/tv-shows/popular', methods=['GET'])
 def get_popular_shows():
@@ -178,3 +181,110 @@ def get_movie_details(show_id):
         return jsonify(json_data)  # Return only the 'results' array
     else:
         return jsonify({"error": "Unable to fetch data from TMDb"}), response.status_code
+    
+@bp.route('/set_tv_show_state', methods=['POST'])
+def set_tv_show_state():
+    data = request.get_json()
+    user_id = data.get('user_id')
+    tv_show_id = data.get('tv_show_id')
+    state = data.get('state')
+    title = data.get('title')
+    image = data.get('image')        
+
+    if not user_id or not tv_show_id or not state:
+        return jsonify({'error': 'Missing required parameters'}), 400
+
+    try:
+        existing_state = TVShowState.query.filter_by(user_id=user_id, tv_show_id=tv_show_id).first()
+        if existing_state:
+            existing_state.state = state
+            existing_state.title = title
+            existing_state.image_path = image
+        else:
+            new_state = TVShowState(
+                user_id=user_id, 
+                tv_show_id=tv_show_id, 
+                state=state, 
+                title=title, 
+                image_path=image
+            )
+            db.session.add(new_state)
+        db.session.commit()
+        return jsonify({'message': 'TV show state updated successfully'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+    
+@bp.route('/get_tv_show_states/<int:user_id>', methods=['GET'])
+def get_tv_show_states(user_id):
+    try:
+        tv_show_states = TVShowState.query.filter_by(user_id=user_id).all()
+        return jsonify([{
+            'tv_show_id': state.tv_show_id,
+            'state': state.state,        
+        } for state in tv_show_states]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@bp.route('/tv-watchlist/completed/<int:user_id>', methods=['GET'])
+def get_completed_watchlist(user_id):
+    return get_watchlist_by_state(user_id, 'Completed')
+
+@bp.route('/tv-watchlist/watching/<int:user_id>', methods=['GET'])
+def get_watching_watchlist(user_id):
+    return get_watchlist_by_state(user_id, 'Watching')
+
+@bp.route('/tv-watchlist/plan-to-watch/<int:user_id>', methods=['GET'])
+def get_plan_to_watch_watchlist(user_id):
+    return get_watchlist_by_state(user_id, 'Plan to Watch')
+
+@bp.route('/tv-watchlist/on-hold/<int:user_id>', methods=['GET'])
+def get_on_hold_watchlist(user_id):
+    return get_watchlist_by_state(user_id, 'On Hold')
+
+@bp.route('/tv-watchlist/dropped/<int:user_id>', methods=['GET'])
+def get_dropped_watchlist(user_id):
+    return get_watchlist_by_state(user_id, 'Dropped')
+
+def get_watchlist_by_state(user_id, state):
+    try:
+        watchlist = TVShowState.query.filter_by(user_id=user_id, state=state).all()
+        result = []
+        for item in watchlist:
+            result.append({
+                'id': item.id,
+                'user_id': item.user_id,
+                'tv_show_id': item.tv_show_id,
+                'state': item.state,
+                'title': item.title,
+                'image_path': item.image_path
+            })
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@bp.route('/tv-watchlist/<state>/<int:user_id>/<int:tv_show_id>', methods=['DELETE'])
+def remove_from_watchlist(state, user_id, tv_show_id):
+    decoded_state = unquote(state)  # Decode URL-encoded state    
+    state_mapping = {
+        'completed': 'Completed',
+        'watching': 'Watching',
+        'plan to watch': 'Plan to Watch',
+        'on hold': 'On Hold',
+        'dropped': 'Dropped'
+    }
+    state = state_mapping.get(decoded_state.lower(), None)
+    if state is None:
+        return jsonify({'error': 'Invalid state'}), 400
+
+    try:
+        tv_show_state = TVShowState.query.filter_by(user_id=user_id, tv_show_id=tv_show_id, state=state).first()
+        if tv_show_state:
+            db.session.delete(tv_show_state)
+            db.session.commit()
+            return jsonify({'message': 'TV show removed successfully'}), 200
+        else:
+            return jsonify({'error': 'TV show not found'}), 404
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
