@@ -279,12 +279,38 @@ const SearchMovie = () => {
           )}
         </Box>
         {totalPages > 1 && (
-          <Pagination
-            count={totalPages}
-            page={currentPage}
-            onChange={handlePageChange}
-            sx={{ marginTop: 3, marginBottom: 3 }}
-          />
+          <Stack
+            direction="row"
+            justifyContent="center"
+            alignItems="center"
+            spacing={2}
+            sx={{ marginTop: "20px" }}
+          >
+            <Button
+              variant="contained"
+              onClick={() => handlePageChange(null, currentPage - 1)}
+              disabled={currentPage === 1 || loading}
+            >
+              Previous
+            </Button>
+            <Pagination
+              count={totalPages}
+              page={currentPage}
+              onChange={handlePageChange}
+              siblingCount={0}
+              boundaryCount={1}
+              shape="rounded"
+              size="small"
+              disabled={loading}
+            />
+            <Button
+              variant="contained"
+              onClick={() => handlePageChange(null, currentPage + 1)}
+              disabled={currentPage === totalPages || loading}
+            >
+              Next
+            </Button>
+          </Stack>
         )}
         {showBackToTop && (
           <Fab

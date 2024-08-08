@@ -175,6 +175,18 @@ const ProfilePage = () => {
     }
   };  
 
+  const handleDeleteAccount = async () => {
+    if (user) {
+      try {
+        await axios.delete('/api/delete-account');
+        // Perform any necessary cleanup or redirection after account deletion
+        navigate('/login'); // Redirect to login page or any other desired page
+      } catch (error) {
+        console.error('Error deleting account:', error.response ? error.response.data : error.message);
+      }
+    }
+  };
+
   return (
     <div className='profile-container'>
       <Navbar />
@@ -187,6 +199,14 @@ const ProfilePage = () => {
           <Typography variant="h6">User Details</Typography>
           <Typography variant="body1">Username: {user?.username}</Typography>
           <Typography variant="body1">Email: {user?.email}</Typography>
+          <Button 
+            variant="contained" 
+            color="error"
+            onClick={handleDeleteAccount}
+            sx={{ mt: 2 }} // Margin top of 2 spacing units
+          >
+            Delete Account
+          </Button>
         </TabPanel>
         <TabPanel value={tabValue} index={1}>
           <Box sx={{ width: '100%' }}>
