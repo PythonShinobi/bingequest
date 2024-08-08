@@ -1,5 +1,5 @@
 // client/src/details/MovieDetails.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useParams } from 'react-router-dom';
@@ -29,11 +29,19 @@ const MovieDetails = () => {
 
   const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens
 
+  // Cache object
+  const cacheObject = useMemo(() => ({
+    movieDetails: null
+  }), []);
+
   useEffect(() => {
     const fetchMovieDetails = async () => {
       try {
-        const response = await axios.get(`/api/movies/${movieId}`);
-        setMovie(response.data);
+        if (!cacheObject.movieDetails) {
+          const response = await axios.get(`/api/movies/${movieId}`);
+          cacheObject.movieDetails = response.data;
+          setMovie(response.data);
+        }
       } catch (error) {
         setError('Error fetching movie details');
       } finally {
@@ -43,7 +51,7 @@ const MovieDetails = () => {
 
     fetchMovieDetails();
     window.scrollTo(0, 0); // Scroll to the top of the page on page change
-  }, [movieId]);
+  }, [movieId, cacheObject]);
 
   if (loading) return (
     <div>

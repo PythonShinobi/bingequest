@@ -1,5 +1,5 @@
 // client/src/details/TVShowDetails.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useParams } from 'react-router-dom';
@@ -29,11 +29,19 @@ const TvShowDetails = () => {
 
   const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens
 
+  // Cache object
+  const cacheObject = useMemo(() => ({
+    tvShowDetails: null
+  }), []);
+
   useEffect(() => {
     const fetchTvShowDetails = async () => {
       try {
-        const response = await axios.get(`/api/tv-show/${showId}`);
-        setShow(response.data);
+        if (!cacheObject.tvShowDetails) {
+          const response = await axios.get(`/api/tv-show/${showId}`);
+          cacheObject.tvShowDetails = response.data;
+          setShow(response.data);
+        }
       } catch (error) {
         setError('Error fetching TV show details');
       } finally {
