@@ -49,6 +49,10 @@ def create_app(config=Config):
     from app.home import bp as home_bp
     flask_app.register_blueprint(home_bp, url_prefix="/api")
 
+    # Register the account blueprint
+    from app.account import bp as user_account
+    flask_app.register_blueprint(user_account, url_prefix="/api")
+
     # @flask_app.before_request
     # def list_routes():
     #     """Print out all registered routes."""
