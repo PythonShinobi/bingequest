@@ -1,5 +1,6 @@
 // client/src/profile/ProfilePage.jsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from 'axios';
 import { 
   Box, 
@@ -22,68 +23,135 @@ import useIsAuthenticated from '../redux/authHook';
 const ProfilePage = () => {
   const [tabValue, setTabValue] = useState(0);
   const [watchListTab, setWatchListTab] = useState(0);
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [completedList, setCompletedList] = useState([]);
   const [watchingList, setWatchingList] = useState([]);
   const [planToWatchList, setPlanToWatchList] = useState([]);
   const [onHoldList, setOnHoldList] = useState([]);
   const [droppedList, setDroppedList] = useState([]);
+
   const [completedTVShows, setCompletedTVShows] = useState([]);
   const [watchingTVShows, setWatchingTVShows] = useState([]);
   const [planToWatchTVShows, setPlanToWatchTVShows] = useState([]);
   const [onHoldTVShows, setOnHoldTVShows] = useState([]);
   const [droppedTVShows, setDroppedTVShows] = useState([]);
 
+  const navigate = useNavigate();  
   const user = useIsAuthenticated(); // Assuming this hook gets the authenticated user
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));  
+  const isVerySmallScreen = useMediaQuery("(max-width:360px)");
+
+  // Cache object
+  const cacheObject = useMemo(() => ({
+    completedMovies: null,
+    watchingMovies: null,
+    planToWatchMovies: null,
+    onHoldMovies: null,
+    droppedMovies: null,
+    completedTVShows: null,
+    watchingTVShows: null,
+    planToWatchTVShows: null,
+    onHoldTVShows: null,
+    droppedTVShows: null    
+  }), []);
 
   const handleChange = (event, newValue) => {
     setTabValue(newValue);
+    setSearchParams({ tab: newValue });
   };
 
   const handleWatchListTabChange = (event, newValue) => {
     setWatchListTab(newValue);
+    setSearchParams({ tab: tabValue, watchListTab: newValue });
   };
 
   const fetchWatchLists = useCallback(async () => {
     if (user) {
       try {
-        const [completedMoviesRes, watchingMoviesRes, planToWatchMoviesRes, onHoldMoviesRes, droppedMoviesRes] = await Promise.all([
-          axios.get(`/api/watchlist/completed/${user.id}`),
-          axios.get(`/api/watchlist/watching/${user.id}`),
-          axios.get(`/api/watchlist/plan-to-watch/${user.id}`),
-          axios.get(`/api/watchlist/on-hold/${user.id}`),
-          axios.get(`/api/watchlist/dropped/${user.id}`),
-        ]);                
+        // Check cache before making requests
+        if (!cacheObject.completedMovies) {
+          const completedMoviesRes = await axios.get(`/api/watchlist/completed/${user.id}`);
+          cacheObject.completedMovies = completedMoviesRes.data;
+          setCompletedList(cacheObject.completedMovies);
+        }
 
-        const [completedTVShowsRes, watchingTVShowsRes, planToWatchTVShowsRes, onHoldTVShowsRes, droppedTVShowsRes] = await Promise.all([
-          axios.get(`/api/tv-watchlist/completed/${user.id}`),
-          axios.get(`/api/tv-watchlist/watching/${user.id}`),
-          axios.get(`/api/tv-watchlist/plan-to-watch/${user.id}`),
-          axios.get(`/api/tv-watchlist/on-hold/${user.id}`),
-          axios.get(`/api/tv-watchlist/dropped/${user.id}`),
-        ]);
+        if (!cacheObject.watchingMovies) {
+          const watchingMoviesRes = await axios.get(`/api/watchlist/watching/${user.id}`);
+          cacheObject.watchingMovies = watchingMoviesRes.data;
+          setWatchingList(cacheObject.watchingMovies);
+        }
 
-        setCompletedList(completedMoviesRes.data);
-        setWatchingList(watchingMoviesRes.data);
-        setPlanToWatchList(planToWatchMoviesRes.data);
-        setOnHoldList(onHoldMoviesRes.data);
-        setDroppedList(droppedMoviesRes.data);
+        if (!cacheObject.planToWatchMovies) {
+          const planToWatchMoviesRes = await axios.get(`/api/watchlist/plan-to-watch/${user.id}`);
+          cacheObject.planToWatchMovies = planToWatchMoviesRes.data;
+          setPlanToWatchList(cacheObject.planToWatchMovies);
+        }
 
-        setCompletedTVShows(completedTVShowsRes.data);
-        setWatchingTVShows(watchingTVShowsRes.data);
-        setPlanToWatchTVShows(planToWatchTVShowsRes.data);
-        setOnHoldTVShows(onHoldTVShowsRes.data);
-        setDroppedTVShows(droppedTVShowsRes.data);
+        if (!cacheObject.onHoldMovies) {
+          const onHoldMoviesRes = await axios.get(`/api/watchlist/on-hold/${user.id}`);
+          cacheObject.onHoldMovies = onHoldMoviesRes.data;
+          setOnHoldList(cacheObject.onHoldMovies);
+        }
+
+        if (!cacheObject.droppedMovies) {
+          const droppedMoviesRes = await axios.get(`/api/watchlist/dropped/${user.id}`);
+          cacheObject.droppedMovies = droppedMoviesRes.data;
+          setDroppedList(cacheObject.droppedMovies);
+        }
+
+        if (!cacheObject.completedTVShows) {
+          const completedTVShowsRes = await axios.get(`/api/tv-watchlist/completed/${user.id}`);
+          cacheObject.completedTVShows = completedTVShowsRes.data;
+          setCompletedTVShows(cacheObject.completedTVShows);
+        }
+
+        if (!cacheObject.watchingTVShows) {
+          const watchingTVShowsRes = await axios.get(`/api/tv-watchlist/watching/${user.id}`);
+          cacheObject.watchingTVShows = watchingTVShowsRes.data;
+          setWatchingTVShows(cacheObject.watchingTVShows);
+        }
+
+        if (!cacheObject.planToWatchTVShows) {
+          const planToWatchTVShowsRes = await axios.get(`/api/tv-watchlist/plan-to-watch/${user.id}`);
+          cacheObject.planToWatchTVShows = planToWatchTVShowsRes.data;
+          setPlanToWatchTVShows(cacheObject.planToWatchTVShows);
+        }
+
+        if (!cacheObject.onHoldTVShows) {
+          const onHoldTVShowsRes = await axios.get(`/api/tv-watchlist/on-hold/${user.id}`);
+          cacheObject.onHoldTVShows = onHoldTVShowsRes.data;
+          setOnHoldTVShows(cacheObject.onHoldTVShows);
+        }
+
+        if (!cacheObject.droppedTVShows) {
+          const droppedTVShowsRes = await axios.get(`/api/tv-watchlist/dropped/${user.id}`);
+          cacheObject.droppedTVShows = droppedTVShowsRes.data;
+          setDroppedTVShows(cacheObject.droppedTVShows);
+        }
       } catch (error) {
         console.error('Error fetching watch lists:', error);
       }
-    }
-  }, [user]);
+    }    
+  }, [user, cacheObject]);
 
   useEffect(() => {
-    fetchWatchLists();
-  }, [fetchWatchLists]);
+    fetchWatchLists();    
+  }, [fetchWatchLists, cacheObject]);
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    const watchListTabParam = searchParams.get('watchListTab');
+
+    if (tab !== null) {
+      setTabValue(parseInt(tab, 10));
+    }
+
+    if (watchListTabParam !== null) {
+      setWatchListTab(parseInt(watchListTabParam, 10));
+    }
+  }, [searchParams]);
 
   const handleRemoveMovie = async (movieId, state) => {
     if (user) {
@@ -105,7 +173,7 @@ const ProfilePage = () => {
         console.error('Error removing TV show:', error.response ? error.response.data : error.message);
       }
     }
-  };
+  };  
 
   return (
     <div className='profile-container'>
@@ -137,73 +205,93 @@ const ProfilePage = () => {
               <Tab label="Dropped" />
             </Tabs>
             <TabPanel value={watchListTab} index={0}>
-              <Typography variant="h6" sx={{ mb: 2 }}>Completed Movies</Typography>
+              <Typography variant="h6" sx={{ mb: 2 }}>Movies</Typography>
               <MovieCardList 
                 movies={completedList} 
                 onRemove={handleRemoveMovie}
                 isMobile={isMobile}
+                isVerySmallScreen={isVerySmallScreen}
+                navigate={navigate}
               />
-              <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>Completed TV Shows</Typography>
+              <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>TV Shows</Typography>
               <TVShowCardList 
                 tvShows={completedTVShows} 
                 onRemove={handleRemoveTVShow}
                 isMobile={isMobile} 
+                isVerySmallScreen={isVerySmallScreen}
+                navigate={navigate}
               />
             </TabPanel>
             <TabPanel value={watchListTab} index={1}>
-              <Typography variant="h6" sx={{ mb: 2 }}>Watching Movies</Typography>
+              <Typography variant="h6" sx={{ mb: 2 }}>Movies</Typography>
               <MovieCardList 
                 movies={watchingList} 
                 onRemove={handleRemoveMovie}
                 isMobile={isMobile} 
+                isVerySmallScreen={isVerySmallScreen}
+                navigate={navigate}
               />
-              <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>Watching TV Shows</Typography>
+              <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>TV Shows</Typography>
               <TVShowCardList 
                 tvShows={watchingTVShows} 
                 onRemove={handleRemoveTVShow}
                 isMobile={isMobile} 
+                isVerySmallScreen={isVerySmallScreen}
+                navigate={navigate}
               />
             </TabPanel>
             <TabPanel value={watchListTab} index={2}>
-              <Typography variant="h6" sx={{ mb: 2 }}>Plan to Watch Movies</Typography>
+              <Typography variant="h6" sx={{ mb: 2 }}>Movies</Typography>
               <MovieCardList 
                 movies={planToWatchList} 
                 onRemove={handleRemoveMovie}
                 isMobile={isMobile} 
+                isVerySmallScreen={isVerySmallScreen}
+                navigate={navigate}
               />
-              <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>Plan to Watch TV Shows</Typography>
+              <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>TV Shows</Typography>
               <TVShowCardList 
                 tvShows={planToWatchTVShows} 
                 onRemove={handleRemoveTVShow}
                 isMobile={isMobile} 
+                isVerySmallScreen={isVerySmallScreen}
+                navigate={navigate}
               />
             </TabPanel>
             <TabPanel value={watchListTab} index={3}>
-              <Typography variant="h6" sx={{ mb: 2 }}>On Hold Movies</Typography>
+              <Typography variant="h6" sx={{ mb: 2 }}>Movies</Typography>
               <MovieCardList 
                 movies={onHoldList} 
                 onRemove={handleRemoveMovie}
                 isMobile={isMobile} 
+                isVerySmallScreen={isVerySmallScreen}
+                navigate={navigate}
               />
-              <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>On Hold TV Shows</Typography>
+              <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>TV Shows</Typography>
               <TVShowCardList 
                 tvShows={onHoldTVShows} 
                 onRemove={handleRemoveTVShow}
                 isMobile={isMobile} 
+                isVerySmallScreen={isVerySmallScreen}
+                navigate={navigate}
               />
             </TabPanel>
             <TabPanel value={watchListTab} index={4}>
-              <Typography variant="h6" sx={{ mb: 2 }}>Dropped Movies</Typography>
+              <Typography variant="h6" sx={{ mb: 2 }}>Movies</Typography>
               <MovieCardList 
                 movies={droppedList} 
                 onRemove={handleRemoveMovie}
                 isMobile={isMobile} 
+                isVerySmallScreen={isVerySmallScreen}
+                navigate={navigate}
               />
-              <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>Dropped TV Shows</Typography>
+              <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>TV Shows</Typography>
               <TVShowCardList 
                 tvShows={droppedTVShows} 
                 onRemove={handleRemoveTVShow}
                 isMobile={isMobile} 
+                isVerySmallScreen={isVerySmallScreen}
+                navigate={navigate}
               />
             </TabPanel>
           </Box>
@@ -212,6 +300,7 @@ const ProfilePage = () => {
     </div>
   );
 };
+
 
 /**
  * TabPanel component to display content conditionally based on the selected tab.
@@ -254,18 +343,27 @@ const TabPanel = (props) => {
 };
 
 // Component to display a list of movie cards
-const MovieCardList = ({ movies, onRemove, isMobile }) => {
+const MovieCardList = ({ movies, onRemove, isMobile, isVerySmallScreen, navigate }) => {
   // Reverse the movies array to display the most recent first
   const sortedMovies = [...movies].reverse();
+
+  const handleCardClick = (id) => {
+    navigate(`/movie/${id}`); // Navigate to the movie details page
+  };
 
   return (
     <Grid container spacing={2}>
       {sortedMovies.map((movie) => (
         <Grid item xs={12} sm={6} md={4} lg={3} key={movie.movie_id}>
-          <Card>
+          <Card
+            onClick={() => handleCardClick(movie.movie_id)}
+            sx={{
+              cursor: 'pointer'
+            }}
+          >
             <CardMedia
               component="img"
-              height="400"
+              height={isVerySmallScreen ? "295" : isMobile ? "300" : "400"}
               image={movie.image_path}
               alt={movie.title}
             />
@@ -290,18 +388,27 @@ const MovieCardList = ({ movies, onRemove, isMobile }) => {
 };
 
 // Component to display a list of TV show cards
-const TVShowCardList = ({ tvShows, onRemove, isMobile }) => {
+const TVShowCardList = ({ tvShows, onRemove, isMobile, isVerySmallScreen, navigate }) => {
   // Reverse the tvShows array to display the most recent first
   const sortedTVShows = [...tvShows].reverse();
+
+  const handleShowCardClick = (id) => {
+    navigate(`/tv-show/${id}`);
+  };
 
   return (
     <Grid container spacing={2}>
       {sortedTVShows.map((tvShow) => (
         <Grid item xs={12} sm={6} md={4} lg={3} key={tvShow.tv_show_id}>
-          <Card>
+          <Card
+            onClick={() => handleShowCardClick(tvShow.tv_show_id)}
+            sx={{
+              cursor: 'pointer'
+            }}
+          >
             <CardMedia
               component="img"
-              height="400"
+              height={isVerySmallScreen ? "295" : isMobile ? "300" : "400"}
               image={tvShow.image_path}
               alt={tvShow.title}
             />
