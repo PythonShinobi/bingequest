@@ -57,7 +57,7 @@ const TvShowDetails = () => {
 
     fetchTvShowDetails();
     window.scrollTo(0, 0); // Scroll to the top of the page on page change
-  }, [showId]);
+  }, [showId, cacheObject]);
 
   if (loading) return (
     <div>

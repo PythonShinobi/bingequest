@@ -1,5 +1,6 @@
-// client/src/popular/PopularPeople.jsx
+// client/src/people/PopularPeople.jsx
 import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 import {
   Grid,
@@ -26,6 +27,12 @@ const getPopularityRating = (popularity) => {
   return Math.min(5, popularity / 20); // Scale from 0-100 to 0-5 stars
 };
 
+// Cache Object
+const cacheObject = {
+  popularPeople: null,
+  searchResults: {},
+};
+
 const PopularPeople = () => {
   const [people, setPeople] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -35,13 +42,28 @@ const PopularPeople = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens
+  const navigate = useNavigate(); // Hook to programmatically navigate
 
   const fetchPopularPeople = useCallback(async (page) => {
     setLoading(true);
+    if (cacheObject.popularPeople && cacheObject.popularPeople[page]) {
+      setPeople(cacheObject.popularPeople[page].results);
+      setTotalPages(cacheObject.popularPeople[page].total_pages);
+      setLoading(false);
+      return;
+    }
     try {
       const response = await axios.get("/api/people/popular", {
         params: { page },
       });
+      // Cache the data
+      if (!cacheObject.popularPeople) {
+        cacheObject.popularPeople = {};
+      }
+      cacheObject.popularPeople[page] = {
+        results: response.data.results,
+        total_pages: response.data.total_pages,
+      };
       setPeople(response.data.results);
       setTotalPages(response.data.total_pages);
     } catch (error) {
@@ -53,6 +75,12 @@ const PopularPeople = () => {
 
   const searchPeople = useCallback(async (page, query) => {
     setLoading(true);
+    if (cacheObject.searchResults[query] && cacheObject.searchResults[query][page]) {
+      setPeople(cacheObject.searchResults[query][page].results);
+      setTotalPages(cacheObject.searchResults[query][page].total_pages);
+      setLoading(false);
+      return;
+    }
     try {
       const response = await axios.get("/api/search/popular", {
         params: {
@@ -62,6 +90,14 @@ const PopularPeople = () => {
           language: "en-US",
         },
       });
+      // Cache the data
+      if (!cacheObject.searchResults[query]) {
+        cacheObject.searchResults[query] = {};
+      }
+      cacheObject.searchResults[query][page] = {
+        results: response.data.results,
+        total_pages: response.data.total_pages,
+      };
       setPeople(response.data.results);
       setTotalPages(response.data.total_pages);
     } catch (error) {
@@ -89,11 +125,16 @@ const PopularPeople = () => {
     setCurrentPage(1); // Reset to first page on new search
   };
 
+  const handleCardClick = (personId) => {
+    // Navigate to the person details page
+    navigate(`/people/${personId}`);
+  };
+
   const memoizedPeople = useMemo(
     () =>
       people.map((person) => (
         <Grid item xs={12} sm={6} md={3} key={person.id}>
-          <Card>
+          <Card onClick={() => handleCardClick(person.id)} sx={{ cursor: 'pointer' }}>
             <CardMedia
               component="img"
               image={`https://image.tmdb.org/t/p/w500${person.profile_path}`}
@@ -115,7 +156,7 @@ const PopularPeople = () => {
           </Card>
         </Grid>
       )),
-    [people]
+    [people, navigate]
   );
 
   const handleScrollToTop = () => {
