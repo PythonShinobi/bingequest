@@ -1,6 +1,6 @@
 // client/src/people/PopularPeople.jsx
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from "axios";
 import {
   Grid,
@@ -40,6 +40,7 @@ const PopularPeople = () => {
   const [loading, setLoading] = useState(true);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams(); // Hook to get and set URL search parameters
 
   const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens
   const navigate = useNavigate(); // Hook to programmatically navigate
@@ -86,7 +87,7 @@ const PopularPeople = () => {
         params: {
           page, 
           query,
-          include_adult: false,
+          include_adult: true,
           language: "en-US",
         },
       });
@@ -97,7 +98,7 @@ const PopularPeople = () => {
       cacheObject.searchResults[query][page] = {
         results: response.data.results,
         total_pages: response.data.total_pages,
-      };
+      };      
       setPeople(response.data.results);
       setTotalPages(response.data.total_pages);
     } catch (error) {
@@ -108,21 +109,27 @@ const PopularPeople = () => {
   }, []);
 
   useEffect(() => {
-    if (searchTerm) {
-      searchPeople(currentPage, searchTerm);
+    const page = parseInt(searchParams.get("page"), 10) || 1;
+    const query = searchParams.get("query") || "";
+    setSearchTerm(query);
+    setCurrentPage(page);
+    if (query) {
+      searchPeople(page, query);
     } else {
-      fetchPopularPeople(currentPage);
+      fetchPopularPeople(page);
     }
     window.scrollTo(0, 0);
-  }, [currentPage, searchTerm, fetchPopularPeople, searchPeople]);
+  }, [searchParams, fetchPopularPeople, searchPeople]);
 
   const handlePageChange = (event, newPage) => {
     setCurrentPage(newPage);
+    setSearchParams({ page: newPage, query: searchTerm }); // Update URL with new page number and search term
   };
 
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
     setCurrentPage(1); // Reset to first page on new search
+    setSearchParams({ page: 1, query: event.target.value }); // Update URL with new search term and reset page number
   };
 
   const handleCardClick = useCallback((personId) => {
