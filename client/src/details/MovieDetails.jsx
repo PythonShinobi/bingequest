@@ -1,8 +1,9 @@
 // client/src/details/MovieDetails.jsx
 import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
-import useMediaQuery from '@mui/material/useMediaQuery';
 import { useParams } from 'react-router-dom';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import Marquee from 'react-fast-marquee'; // Import the marquee library
 import {  
   CardContent,
   Typography,
@@ -12,7 +13,9 @@ import {
   Box,
   Grid,
   Skeleton,
-  Alert, // Import Alert for user-friendly error messages
+  Alert,
+  Card,
+  CardMedia,
 } from '@mui/material';
 
 import Navbar from '../navbar/Navbar';
@@ -25,11 +28,12 @@ const getStarRating = (voteAverage) => {
 const MovieDetails = () => {
   const { movieId } = useParams();
   const [movie, setMovie] = useState(null);
+  const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens
-  const isMediumScreen = useMediaQuery('(min-width:800px) and (max-width:900px)');
+  const isSmallScreen = useMediaQuery('(max-width:600px)');
+  const isMediumScreen = useMediaQuery('(min-width:800px) and (max-width:900px)');  
 
   // Set height based on screen size
   const backgroundPictureHeight = isSmallScreen ? '32vh' : isMediumScreen ? '130vh' : '100vh';  
@@ -37,7 +41,8 @@ const MovieDetails = () => {
 
   // Cache object
   const cacheObject = useMemo(() => ({
-    movieDetails: null
+    movieDetails: null,
+    movieRecommendations: null, // Add recommendations to the cache
   }), []);
 
   useEffect(() => {
@@ -55,7 +60,20 @@ const MovieDetails = () => {
       }
     };
 
+    const fetchRecommendations = async () => {
+      try {
+        if (!cacheObject.movieRecommendations) {
+          const response = await axios.get(`/api/movies/recommendations/${movieId}`);
+          cacheObject.movieRecommendations = response.data.results;
+          setRecommendations(response.data.results);
+        }
+      } catch (error) {
+        setError('Failed to load movie recommendations. Please try again later.');
+      }
+    };
+
     fetchMovieDetails();
+    fetchRecommendations();
     window.scrollTo(0, 0);
   }, [movieId, cacheObject]);
 
@@ -75,7 +93,7 @@ const MovieDetails = () => {
             color: 'white',
             textShadow: '2px 2px 4px rgba(0,0,0,0.6)',
             padding: '20px',
-            marginTop: 5, // Ensure no additional margin is added
+            marginTop: 5,
           }}
         >
           <Skeleton variant="text" width={isSmallScreen ? '60%' : '40%'} height={50} />
@@ -103,6 +121,11 @@ const MovieDetails = () => {
       </Box>
     </div>
   );
+
+  const handleCardClick = (movieId) => {
+    // Navigate to the new URL
+    window.location.href = `/movie/${movieId}`;
+  };
 
   // Display the movie details
   return (
@@ -141,7 +164,7 @@ const MovieDetails = () => {
                 alignItems: 'center',
                 width: posterWidth, 
                 borderRadius: '8px',
-                height: '100%', // Ensure the container takes up full height if needed
+                height: '100%',
               }}
             />
           </Grid>
@@ -152,7 +175,7 @@ const MovieDetails = () => {
               </Typography>
               <Typography 
                 variant="body1"
-                sx={{ mt: 2 }} // Adds margin-top to create space between heading and overview
+                sx={{ mt: 2 }}
               >
                 {movie.overview}
               </Typography>
@@ -192,7 +215,46 @@ const MovieDetails = () => {
               </Stack>
             </CardContent>
           </Grid>
-        </Grid>  
+        </Grid>
+
+        {/* Movie Recommendations Marquee */}
+        <Box sx={{ mt: 4, px: 2 }}>
+          <Typography variant="h6" align="center" gutterBottom>
+            You Might Also Like
+          </Typography>
+          <Marquee pauseOnHover={true} gradient={false}>
+            {recommendations.map((recommendation) => (
+              <Card
+                key={recommendation.id}
+                sx={{
+                  display: 'inline-block',
+                  mx: 1,
+                  cursor: 'pointer',
+                  minWidth: 150, // Fixed width
+                  maxWidth: 150, // Fixed width
+                  height: 280,  // Fixed height
+                  '&:hover': {
+                    transform: 'scale(1.05)',
+                  },
+                }}
+                onClick={() => handleCardClick(recommendation.id)}
+              >
+                <CardMedia
+                  component="img"
+                  image={`https://image.tmdb.org/t/p/w500${recommendation.poster_path}`}
+                  alt={recommendation.title}
+                  sx={{ height: 200 }}
+                />
+                <CardContent>
+                  <Typography variant="body2" align="center">
+                    {recommendation.title}
+                  </Typography>
+                </CardContent>
+              </Card>
+            ))}
+          </Marquee>
+        </Box>
+
       </Box>
     </div>
   );
