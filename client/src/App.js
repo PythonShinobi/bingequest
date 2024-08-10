@@ -19,6 +19,10 @@ import SearchTVShow from './search/SearchTVShow';
 import MovieDetails from './details/MovieDetails';
 import TvShowDetails from './details/TVShowDetails';
 import ProfilePage from './profile/ProfilePage';
+import PageNotFound from './404/PageNotFound';
+import ContactPage from './contact/Contact';
+import About from './about/About';
+import CelebrityDetails from './details/PersonDetails';
 
 import useIsAuthenticated from './redux/authHook';
 
@@ -39,6 +43,10 @@ const MemoizedSearchTVShow = memo(SearchTVShow);
 const MemoizedMovieDetails = memo(MovieDetails);
 const MemoizedTvShowDetails = memo(TvShowDetails);
 const MemoizedProfilePage = memo(ProfilePage);
+const MemoizedPageNotFound = memo(PageNotFound);
+const MemoizedContactPage = memo(ContactPage);
+const MemoizedAbout = memo(About);
+const MemoizedCelebrityDetails = memo(CelebrityDetails);
 
 const App = () => {
   return (
@@ -47,6 +55,8 @@ const App = () => {
         <Route path='/' element={<MemoizedHome />} />
         <Route path='/Register' element={<MemoizedRegister />} />
         <Route path='/login' element={<MemoizedLogin />} />
+        <Route path='/contact' element={<MemoizedContactPage />} />
+        <Route path='/about' element={<MemoizedAbout />} />
         <Route path='/movies/popular' element={<MemoizedPopularMovies />} />
         <Route path='/movies/trending' element={<MemoizedTrendingMovies />} />
         <Route path='/movies/top-rated' element={<MemoizedTopRatedMovies />} />
@@ -60,7 +70,9 @@ const App = () => {
         <Route path='/tv-shows/search' element={<MemoizedSearchTVShow />} />
         <Route path="/movie/:movieId" element={<MemoizedMovieDetails />} />
         <Route path="/tv-show/:showId" element={<MemoizedTvShowDetails />} />
+        <Route path="/people/:personId" element={<MemoizedCelebrityDetails />} />
         <Route path="/profile" element={<PrivateRoute component={MemoizedProfilePage} />} />
+        <Route path='*' element={<MemoizedPageNotFound />} />
       </Routes>
     </BrowserRouter>
   );
