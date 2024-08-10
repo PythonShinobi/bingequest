@@ -11,7 +11,8 @@ import {
   Stack,  
   Box,
   Grid,
-  Skeleton, // Import Skeleton
+  Skeleton,
+  Alert, // Import Alert for user-friendly error messages
 } from '@mui/material';
 
 import Navbar from '../navbar/Navbar';
@@ -28,6 +29,11 @@ const MovieDetails = () => {
   const [error, setError] = useState(null);
 
   const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens
+  const isMediumScreen = useMediaQuery('(min-width:800px) and (max-width:900px)');
+
+  // Set height based on screen size
+  const backgroundPictureHeight = isSmallScreen ? '32vh' : isMediumScreen ? '130vh' : '100vh';  
+  const posterWidth = isSmallScreen ? '60%' : isMediumScreen ? '40%' : '100%';
 
   // Cache object
   const cacheObject = useMemo(() => ({
@@ -43,14 +49,14 @@ const MovieDetails = () => {
           setMovie(response.data);
         }
       } catch (error) {
-        setError('Error fetching movie details');
+        setError('Failed to load movie details. Please try again later.');
       } finally {
         setLoading(false);
       }
     };
 
     fetchMovieDetails();
-    window.scrollTo(0, 0); // Scroll to the top of the page on page change
+    window.scrollTo(0, 0);
   }, [movieId, cacheObject]);
 
   if (loading) return (
@@ -62,7 +68,7 @@ const MovieDetails = () => {
             backgroundImage: `url(https://image.tmdb.org/t/p/original${movie?.backdrop_path || ''})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            height: { xs: '60vh', md: '100vh' }, // Increased height
+            height: backgroundPictureHeight,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -79,26 +85,26 @@ const MovieDetails = () => {
             <Skeleton variant="rectangular" width="100%" height={300} />
           </Grid>
           <Grid item xs={12} md={6} lg={8}>
-            <CardContent>
-              <Typography variant="h4" gutterBottom>
-                <Skeleton variant="text" width="60%" height={40} />
-              </Typography>
-              <Skeleton variant="text" width="100%" height={20} sx={{ mt: 2 }} />
-              <Skeleton variant="text" width="80%" height={20} sx={{ mt: 1 }} />
-              <Skeleton variant="text" width="80%" height={20} sx={{ mt: 1 }} />
-              <Skeleton variant="text" width="80%" height={20} sx={{ mt: 1 }} />
-              <Skeleton variant="text" width="80%" height={20} sx={{ mt: 1 }} />
-              <Skeleton variant="text" width="80%" height={20} sx={{ mt: 1 }} />
-              <Skeleton variant="text" width="50%" height={20} sx={{ mt: 2 }} />
-            </CardContent>
+            <Skeleton variant="text" width="60%" height={40} />
+            <Skeleton variant="text" width="100%" height={20} sx={{ mt: 2 }} />
+            <Skeleton variant="text" width="80%" height={20} sx={{ mt: 1 }} />
           </Grid>
         </Grid>  
       </Box>
     </div>
   );
 
-  if (error) return <Typography variant="h6" color="error">{error}</Typography>;
+  // Display a user-friendly error message
+  if (error) return (
+    <div>
+      <Navbar />
+      <Box sx={{ mt: 12, display: 'flex', justifyContent: 'center' }}>
+        <Alert severity="error">{error}</Alert>
+      </Box>
+    </div>
+  );
 
+  // Display the movie details
   return (
     <div>
       <Navbar />
@@ -108,33 +114,41 @@ const MovieDetails = () => {
             backgroundImage: `url(https://image.tmdb.org/t/p/original${movie.backdrop_path})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            height: { xs: '60vh', md: '100vh' }, // Increased height
+            height: backgroundPictureHeight,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             color: 'white',
             textShadow: '2px 2px 4px rgba(0,0,0,0.6)',
             padding: '20px',
-            marginTop: 5, // Ensure no additional margin is added
+            marginTop: 5,
           }}
         >
           <Typography 
-            variant={isSmallScreen ? 'h4' : 'h2'}
-            sx={{ color: 'black' }} // Apply black color
-            align="center">{movie.title}</Typography>
+            variant={isSmallScreen ? 'h5' : 'h2'}
+            sx={{ color: 'black' }} 
+            align="center"
+          >
+            {movie.title}
+          </Typography>
         </Box>
         <Grid container spacing={4} padding={4} justifyContent="center">
           <Grid item xs={12} md={6} lg={4}>
             <img
               src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
               alt={movie.title}
-              style={{ width: '100%', borderRadius: '8px' }}
+              style={{                
+                alignItems: 'center',
+                width: posterWidth, 
+                borderRadius: '8px',
+                height: '100%', // Ensure the container takes up full height if needed
+              }}
             />
           </Grid>
           <Grid item xs={12} md={6} lg={8}>
             <CardContent>
-              <Typography variant="h4" gutterBottom>
-                {movie.title}
+              <Typography variant={isSmallScreen ? 'h5' : 'h4'} gutterBottom>
+                <strong>{movie.title}</strong>
               </Typography>
               <Typography 
                 variant="body1"

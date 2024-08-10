@@ -12,6 +12,7 @@ import {
   Box,
   Grid,
   Skeleton, // Import Skeleton
+  Alert
 } from '@mui/material';
 
 import Navbar from '../navbar/Navbar';
@@ -28,6 +29,11 @@ const TvShowDetails = () => {
   const [error, setError] = useState(null);
 
   const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens
+  const isMediumScreen = useMediaQuery('(min-width:800px) and (max-width:900px)');
+
+  // Set height and width based on screen size
+  const backgroundPictureHeight = isSmallScreen ? '32vh' : isMediumScreen ? '130vh' : '100vh';  
+  const posterWidth = isSmallScreen ? '60%' : isMediumScreen ? '40%' : '100%';
 
   // Cache object
   const cacheObject = useMemo(() => ({
@@ -43,7 +49,7 @@ const TvShowDetails = () => {
           setShow(response.data);
         }
       } catch (error) {
-        setError('Error fetching TV show details');
+        setError('Failed to load show details. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -62,7 +68,7 @@ const TvShowDetails = () => {
             backgroundImage: `url(https://image.tmdb.org/t/p/original${show?.backdrop_path || ''})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            height: { xs: '60vh', md: '100vh' }, // Increased height
+            height: backgroundPictureHeight,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -97,7 +103,15 @@ const TvShowDetails = () => {
     </div>
   );
 
-  if (error) return <Typography variant="h6" color="error">{error}</Typography>;
+  // Display a user-friendly error message
+  if (error) return (
+    <div>
+      <Navbar />
+      <Box sx={{ mt: 12, display: 'flex', justifyContent: 'center' }}>
+        <Alert severity="error">{error}</Alert>
+      </Box>
+    </div>
+  );
 
   return (
     <div>
@@ -108,7 +122,7 @@ const TvShowDetails = () => {
             backgroundImage: `url(https://image.tmdb.org/t/p/original${show.backdrop_path})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            height: { xs: '60vh', md: '100vh' }, // Increased height
+            height: backgroundPictureHeight,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -119,7 +133,7 @@ const TvShowDetails = () => {
           }}
         >
           <Typography 
-            variant={isSmallScreen ? 'h4' : 'h2'}
+            variant={isSmallScreen ? 'h5' : 'h2'}
             sx={{ color: 'black' }} // Apply black color
             align="center">{show.name}</Typography>
         </Box>
@@ -128,13 +142,18 @@ const TvShowDetails = () => {
             <img
               src={`https://image.tmdb.org/t/p/w500${show.poster_path}`}
               alt={show.name}
-              style={{ width: '100%', borderRadius: '8px' }}
+              style={{
+                alignItems: 'center',
+                width: posterWidth, 
+                borderRadius: '8px',
+                height: '100%',
+              }}
             />
           </Grid>
           <Grid item xs={12} md={6} lg={8}>
             <CardContent>
               <Typography variant="h4" gutterBottom>
-                {show.name}
+                <strong>{show.name} </strong>
               </Typography>
               <Typography 
                 variant="body1"
