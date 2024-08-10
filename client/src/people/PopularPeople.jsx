@@ -125,10 +125,9 @@ const PopularPeople = () => {
     setCurrentPage(1); // Reset to first page on new search
   };
 
-  const handleCardClick = (personId) => {
-    // Navigate to the person details page
+  const handleCardClick = useCallback((personId) => {
     navigate(`/people/${personId}`);
-  };
+  }, [navigate]); // Dependency array with navigate
 
   const memoizedPeople = useMemo(
     () =>
@@ -156,7 +155,7 @@ const PopularPeople = () => {
           </Card>
         </Grid>
       )),
-    [people, navigate]
+    [people, handleCardClick]
   );
 
   const handleScrollToTop = () => {
