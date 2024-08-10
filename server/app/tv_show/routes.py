@@ -288,3 +288,26 @@ def remove_from_watchlist(state, user_id, tv_show_id):
     except Exception as e:
         print(f"Error: {str(e)}")
         return jsonify({'error': str(e)}), 500
+    
+@bp.route('/tv-show/recommendations/<int:series_id>', methods=['GET'])
+def get_recommendations(series_id):
+    token = Config.ACCESS_TOKEN
+    
+    params = {
+        "language": request.args.get('language', 'en-US'),
+        "page": request.args.get('page', 1),
+    }
+    
+    url = f"https://api.themoviedb.org/3/tv/{series_id}/recommendations"
+    
+    headers = {
+        "accept": "application/json",
+        "Authorization": f"Bearer {token}"
+    }
+    
+    response = requests.get(url, headers=headers, params=params)
+    
+    if response.status_code == 200:
+        return jsonify(response.json())
+    else:
+        return jsonify({"error": "Unable to fetch data from TMDb"}), response.status_code
