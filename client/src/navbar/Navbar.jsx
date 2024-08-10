@@ -32,6 +32,7 @@ const Navbar = () => {
   const [moviesMenuAnchor, setMoviesMenuAnchor] = useState(null);
   const [tvShowsMenuAnchor, setTvShowsMenuAnchor] = useState(null);
   const [popularPeopleMenuAnchor, setPopularPeopleMenuAnchor] = useState(null);
+  const [moreMenuAnchor, setMoreMenuAnchor] = useState(null);
 
   const user = useIsAuthenticated();
   const navigate = useNavigate();  
@@ -65,10 +66,15 @@ const Navbar = () => {
     setPopularPeopleMenuAnchor(event.currentTarget);
   };
 
+  const handleMoreMenuClick = (event) => {
+    setMoreMenuAnchor(event.currentTarget);
+  };
+
   const handleMenuClose = () => {
     setMoviesMenuAnchor(null);
     setTvShowsMenuAnchor(null);
     setPopularPeopleMenuAnchor(null);
+    setMoreMenuAnchor(null);
   };
 
   const drawerItems = (
@@ -121,6 +127,19 @@ const Navbar = () => {
           onClose={handleMenuClose}
         >
           <MenuItem component={NavLink} to="/people/popular">Popular People</MenuItem>          
+        </Menu>
+
+        <ListItem onClick={handleMoreMenuClick}>
+          <ListItemText primaryTypographyProps={{ sx: { color: 'black' } }} primary="More" />
+          <ArrowDropDownIcon />
+        </ListItem>
+        <Menu
+          anchorEl={moreMenuAnchor}
+          open={Boolean(moreMenuAnchor)}
+          onClose={handleMenuClose}
+        >
+          <MenuItem component={NavLink} to="/about">About</MenuItem>           
+          <MenuItem component={NavLink} to="/contact">Contact</MenuItem>           
         </Menu>
         {!user && (
           <>
@@ -199,9 +218,15 @@ const Navbar = () => {
                 <NavLink to="/people/popular">Popular People</NavLink>
               </div>
             </div>
-            <Button component={NavLink} to="/more" color="inherit" sx={{ m: 1 }} activeClassName="active">
-              More
-            </Button>
+            <div className="dropdown">
+              <Button component={NavLink} to="/more" color="inherit" sx={{ m: 1 }} activeClassName="active">
+                More
+              </Button>
+              <div className="dropdown-content">
+              <NavLink to="/about">About</NavLink>
+              <NavLink to="/contact">Contact</NavLink>
+              </div>
+            </div>
           </Box>
           <Box sx={{ display: { xs: 'none', md: 'flex' }, justifyContent: 'flex-end' }}>
             {!user && (
