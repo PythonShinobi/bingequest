@@ -1,5 +1,5 @@
 // client/src/details/MovieDetails.jsx
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, memo } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -28,7 +28,9 @@ const MovieDetails = () => {
   const { movieId } = useParams();
   const [movie, setMovie] = useState(null);
   const [recommendations, setRecommendations] = useState([]);
+  const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingVideos, setLoadingVideos] = useState(true);
   const [error, setError] = useState(null);  
 
   const isSmallScreen = useMediaQuery('(max-width:600px)');
@@ -41,7 +43,7 @@ const MovieDetails = () => {
   // Cache object
   const cacheObject = useMemo(() => ({
     movieDetails: null,
-    movieRecommendations: null, // Add recommendations to the cache
+    movieRecommendations: null, // Add recommendations to the cache    
   }), []);
 
   useEffect(() => {
@@ -69,12 +71,42 @@ const MovieDetails = () => {
       } catch (error) {
         setError('Failed to load movie recommendations. Please try again later.');
       }
-    };
+    };    
 
     fetchMovieDetails();
-    fetchRecommendations();
+    fetchRecommendations();    
     window.scrollTo(0, 0);
   }, [movieId, cacheObject]);
+
+  useEffect(() => {
+    const fetchMovieVideos = async () => {
+      try {
+        if (movieId) {
+          const response = await axios.get(`/api/movies/video/${movieId}`);          
+          setVideos(response.data.results);
+        }
+      } catch (error) {        
+        setError('Failed to fetch movie videos');
+      } finally {
+        setLoadingVideos(false);
+      }
+    };
+    fetchMovieVideos();
+    window.scrollTo(0, 0);
+  }, [movieId]);
+
+  // Memoized VideoCard component to avoid unnecessary re-renders
+  const VideoCard = memo(({ video }) => (
+    <Card sx={{ minWidth: '320px', marginRight: 2, borderRadius: '8px' }}>
+      <CardMedia
+        component="iframe"
+        src={`https://www.youtube.com/embed/${video.key}`}
+        title={video.name}
+        height="180px"
+        sx={{ borderRadius: '8px' }}
+      />
+    </Card>
+  ));
 
   if (loading) return (
     <div>
@@ -216,58 +248,108 @@ const MovieDetails = () => {
           </Grid>
         </Grid>
 
+        {/* Video Trailers */}
+        <Box sx={{ mt: 4, px: 2 }}>
+          <Typography 
+            variant={isSmallScreen ? 'h5' : 'h4'}
+            sx={{ color: 'black' }} 
+            align="center"
+          >
+            Watch Trailers
+          </Typography>
+          <Stack 
+            direction="row" 
+            spacing={2} 
+            sx={{ 
+              overflowX: 'auto', 
+              padding: '20px',
+              '&::-webkit-scrollbar': { display: 'none' }, // Hide scrollbar for WebKit browsers
+              msOverflowStyle: 'none',  // Hide scrollbar for IE and Edge
+              scrollbarWidth: 'none'     // Hide scrollbar for Firefox
+            }}
+          >
+            {loadingVideos ? (
+              <Box sx={{ display: 'flex', flexDirection: 'row' }}>
+                {[...Array(3)].map((_, index) => (
+                  <Skeleton 
+                    key={index}
+                    variant="rectangular" 
+                    width={320} 
+                    height={180} 
+                    sx={{ marginRight: 2, borderRadius: '8px' }} 
+                  />
+                ))}
+              </Box>
+            ) : (
+              videos.length > 0 ? (
+                videos.map((video) => (
+                  <VideoCard key={video.id} video={video} />
+                ))
+              ) : (
+                <Typography>No trailers available</Typography>
+              )
+            )}
+          </Stack>
+        </Box>
+
         {/* Movie Recommendations */}
         <Box sx={{ mt: 4, px: 2 }}>
           <Typography 
-            variant={isSmallScreen ? 'h5' : 'h3'}
+            variant={isSmallScreen ? 'h5' : 'h4'}
             align="center" 
             gutterBottom
           >
             You Might Also Like
           </Typography>
-          
-          <Box 
-            sx={{ 
-              display: 'flex', 
-              overflowX: 'scroll', 
-              scrollbarWidth: 'none', 
-              msOverflowStyle: 'none',
-              whiteSpace: 'nowrap',
-              '&::-webkit-scrollbar': { display: 'none' },
-            }}
-          >
-            {recommendations.map(recommendation => (
-              <Box
-                key={recommendation.id}
-                onClick={() => handleCardClick(recommendation.id)}
-                sx={{ display: 'inline-block', mr: 2, cursor: 'pointer', flexShrink: 0 }}
-              >
-                <Card
-                  sx={{ width: isSmallScreen ? 160 : 200, borderRadius: 2 }}
+
+          {recommendations.length > 0 ? (
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                overflowX: 'scroll', 
+                scrollbarWidth: 'none', 
+                msOverflowStyle: 'none',
+                whiteSpace: 'nowrap',
+                '&::-webkit-scrollbar': { display: 'none' },
+              }}
+            >
+              {recommendations.map(recommendation => (
+                <Box
+                  key={recommendation.id}
+                  onClick={() => handleCardClick(recommendation.id)}
+                  sx={{ display: 'inline-block', mr: 2, cursor: 'pointer', flexShrink: 0 }}
                 >
-                  <CardMedia
-                    component="img"
-                    height="270"
-                    image={`https://image.tmdb.org/t/p/w500${recommendation.poster_path}`}
-                    alt={recommendation.title}
-                  />
-                  <CardContent>
-                    <Typography variant="subtitle2" noWrap>
-                      {recommendation.title}
-                    </Typography>
-                    <Rating
-                      value={getStarRating(recommendation.vote_average)}
-                      precision={0.1}
-                      readOnly
+                  <Card
+                    sx={{ width: isSmallScreen ? 160 : 200, borderRadius: 2 }}
+                  >
+                    <CardMedia
+                      component="img"
+                      height="270"
+                      image={`https://image.tmdb.org/t/p/w500${recommendation.poster_path}`}
+                      alt={recommendation.title}
                     />
-                    <Typography variant="body2">
-                      {recommendation.vote_average} ({recommendation.vote_count} votes)
-                    </Typography>           
-                  </CardContent>
-                </Card>
-              </Box>
-            ))}
-          </Box>
+                    <CardContent>
+                      <Typography variant="subtitle2" noWrap>
+                        {recommendation.title}
+                      </Typography>
+                      <Rating
+                        value={getStarRating(recommendation.vote_average)}
+                        precision={0.1}
+                        readOnly
+                      />
+                      <Typography variant="body2">
+                        {recommendation.vote_average} ({recommendation.vote_count} votes)
+                      </Typography>           
+                    </CardContent>
+                  </Card>
+                </Box>
+              ))}
+            </Box>
+          ) : (
+            <Box sx={{ textAlign: 'center', mt: 2 }}>
+              <Typography variant="body1">No recommendations available</Typography>
+            </Box>
+          )}
         </Box>
 
       </Box>

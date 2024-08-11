@@ -1,5 +1,5 @@
 // client/src/details/TVShowDetails.jsx
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, memo } from 'react';
 import axios from 'axios';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useParams } from 'react-router-dom';
@@ -28,7 +28,9 @@ const TvShowDetails = () => {
   const { showId } = useParams();
   const [show, setShow] = useState(null);
   const [recommendations, setRecommendations] = useState([]);
+  const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingVideos, setLoadingVideos] = useState(true);
   const [error, setError] = useState(null);  
 
   const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens
@@ -75,6 +77,36 @@ const TvShowDetails = () => {
     fetchRecommendations();
     window.scrollTo(0, 0); // Scroll to the top of the page on page change
   }, [showId, cacheObject]);
+
+  useEffect(() => {
+    const fetchShowVideos = async () => {
+      try {
+        if (showId) {
+          const response = await axios.get(`/api/tv-show/video/${showId}`); // Changed seriesId to showId          
+          setVideos(response.data.results);
+        }
+      } catch (error) {        
+        setError('Failed to fetch series videos');
+      } finally {
+        setLoadingVideos(false);
+      }
+    };
+    fetchShowVideos();
+    window.scrollTo(0, 0);
+  }, [showId]);
+
+  // Memoized VideoCard component to avoid unnecessary re-renders
+  const VideoCard = memo(({ video }) => (
+    <Card sx={{ minWidth: '320px', marginRight: 2, borderRadius: '8px' }}>
+      <CardMedia
+        component="iframe"
+        src={`https://www.youtube.com/embed/${video.key}`}
+        title={video.name}
+        height="180px"
+        sx={{ borderRadius: '8px' }}
+      />
+    </Card>
+  ));
 
   if (loading) return (
     <div>
@@ -215,59 +247,109 @@ const TvShowDetails = () => {
             </CardContent>
           </Grid>
         </Grid>
+
+        {/* Video Trailers */}
+        <Box sx={{ mt: 4, px: 2 }}>
+          <Typography 
+            variant={isSmallScreen ? 'h5' : 'h4'}
+            sx={{ color: 'black' }} 
+            align="center"
+          >
+            Watch Trailers
+          </Typography>
+          <Stack 
+            direction="row" 
+            spacing={2} 
+            sx={{ 
+              overflowX: 'auto', 
+              padding: '20px',
+              '&::-webkit-scrollbar': { display: 'none' }, // Hide scrollbar for WebKit browsers
+              msOverflowStyle: 'none',  // Hide scrollbar for IE and Edge
+              scrollbarWidth: 'none'     // Hide scrollbar for Firefox
+            }}
+          >
+            {loadingVideos ? (
+              <Box sx={{ display: 'flex', flexDirection: 'row' }}>
+                {[...Array(3)].map((_, index) => (
+                  <Skeleton 
+                    key={index}
+                    variant="rectangular" 
+                    width={320} 
+                    height={180} 
+                    sx={{ marginRight: 2, borderRadius: '8px' }} 
+                  />
+                ))}
+              </Box>
+            ) : (
+              videos.length > 0 ? (
+                videos.map((video) => (
+                  <VideoCard key={video.id} video={video} />
+                ))
+              ) : (
+                <Typography>No trailers available</Typography>
+              )
+            )}
+          </Stack>
+        </Box>
   
         {/* TV Show Recommendation */}
         <Box sx={{ mt: 4, px: 2 }}>
           <Typography 
-            variant={isSmallScreen ? 'h5' : 'h3'}
+            variant={isSmallScreen ? 'h5' : 'h4'}
             align="center" 
             gutterBottom
           >
             You Might Also Like
           </Typography>
-          
-          <Box 
-            sx={{ 
-              display: 'flex', 
-              overflowX: 'scroll', 
-              scrollbarWidth: 'none', 
-              msOverflowStyle: 'none',
-              whiteSpace: 'nowrap',
-              '&::-webkit-scrollbar': { display: 'none' },
-            }}
-          >
-            {recommendations.map(recommendation => (
-              <Box
-                key={recommendation.id}
-                onClick={() => handleCardClick(recommendation.id)}
-                sx={{ display: 'inline-block', mr: 2, cursor: 'pointer', flexShrink: 0 }}
-              >
-                <Card
-                  sx={{ width: isSmallScreen ? 160 : 200, borderRadius: 2 }}
+
+          {recommendations.length > 0 ? (
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                overflowX: 'scroll', 
+                scrollbarWidth: 'none', 
+                msOverflowStyle: 'none',
+                whiteSpace: 'nowrap',
+                '&::-webkit-scrollbar': { display: 'none' },
+              }}
+            >
+              {recommendations.map(recommendation => (
+                <Box
+                  key={recommendation.id}
+                  onClick={() => handleCardClick(recommendation.id)}
+                  sx={{ display: 'inline-block', mr: 2, cursor: 'pointer', flexShrink: 0 }}
                 >
-                  <CardMedia
-                    component="img"
-                    height="280"
-                    image={`https://image.tmdb.org/t/p/w500${recommendation.poster_path}`}
-                    alt={recommendation.title}
-                  />
-                  <CardContent>
-                    <Typography variant="subtitle2" noWrap>
-                      {recommendation.title}
-                    </Typography>
-                    <Rating
-                      value={getStarRating(recommendation.vote_average)}
-                      precision={0.1}
-                      readOnly
+                  <Card
+                    sx={{ width: isSmallScreen ? 160 : 200, borderRadius: 2 }}
+                  >
+                    <CardMedia
+                      component="img"
+                      height="270"
+                      image={`https://image.tmdb.org/t/p/w500${recommendation.poster_path}`}
+                      alt={recommendation.name}
                     />
-                    <Typography variant="body2">
-                      {recommendation.vote_average} ({recommendation.vote_count} votes)
-                    </Typography>           
-                  </CardContent>
-                </Card>
-              </Box>
-            ))}
-          </Box>
+                    <CardContent>
+                      <Typography variant="subtitle2" noWrap>
+                        {recommendation.name}
+                      </Typography>
+                      <Rating
+                        value={getStarRating(recommendation.vote_average)}
+                        precision={0.1}
+                        readOnly
+                      />
+                      <Typography variant="body2">
+                        {recommendation.vote_average} ({recommendation.vote_count} votes)
+                      </Typography>           
+                    </CardContent>
+                  </Card>
+                </Box>
+              ))}
+            </Box>
+          ) : (
+            <Box sx={{ textAlign: 'center', mt: 2 }}>
+              <Typography variant="body1">No recommendations available</Typography>
+            </Box>
+          )}
         </Box>
 
       </Box>
