@@ -311,3 +311,26 @@ def get_recommendations(series_id):
         return jsonify(response.json())
     else:
         return jsonify({"error": "Unable to fetch data from TMDb"}), response.status_code
+    
+@bp.route('/tv-show/video/<int:series_id>', methods=['GET'])
+def get_video(series_id):
+    token = Config.ACCESS_TOKEN
+    
+    params = {
+        "language": request.args.get('language', 'en-US'),
+        "page": request.args.get('page', 1),
+    }
+    
+    url = f"https://api.themoviedb.org/3/tv/{series_id}/videos"
+    
+    headers = {
+        "accept": "application/json",
+        "Authorization": f"Bearer {token}"
+    }
+    
+    response = requests.get(url, headers=headers, params=params)
+    
+    if response.status_code == 200:
+        return jsonify(response.json())
+    else:
+        return jsonify({"error": "Unable to fetch data from TMDb"}), response.status_code    
