@@ -12,7 +12,9 @@ import {
   Box,
   Grid,
   Skeleton, // Import Skeleton
-  Alert
+  Alert,
+  Card,
+  CardMedia,  
 } from '@mui/material';
 
 import Navbar from '../navbar/Navbar';
@@ -25,11 +27,12 @@ const getStarRating = (voteAverage) => {
 const TvShowDetails = () => {
   const { showId } = useParams();
   const [show, setShow] = useState(null);
+  const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(null);  
 
   const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens
-  const isMediumScreen = useMediaQuery('(min-width:800px) and (max-width:900px)');
+  const isMediumScreen = useMediaQuery('(min-width:601px) and (max-width:900px)');
 
   // Set height and width based on screen size
   const backgroundPictureHeight = isSmallScreen ? '32vh' : isMediumScreen ? '130vh' : '100vh';  
@@ -37,7 +40,8 @@ const TvShowDetails = () => {
 
   // Cache object
   const cacheObject = useMemo(() => ({
-    tvShowDetails: null
+    tvShowDetails: null,
+    tvShowRecommendations: null, // Add recommendations to the cache
   }), []);
 
   useEffect(() => {
@@ -55,7 +59,20 @@ const TvShowDetails = () => {
       }
     };
 
+    const fetchRecommendations = async () => {
+      try {
+        if (!cacheObject.movieRecommendations) {
+          const response = await axios.get(`/api/tv-show/recommendations/${showId}`);
+          cacheObject.movieRecommendations = response.data.results;
+          setRecommendations(response.data.results);
+        }
+      } catch (error) {
+        setError('Failed to load movie recommendations. Please try again later.');
+      }
+    };
+
     fetchTvShowDetails();
+    fetchRecommendations();
     window.scrollTo(0, 0); // Scroll to the top of the page on page change
   }, [showId, cacheObject]);
 
@@ -113,6 +130,11 @@ const TvShowDetails = () => {
     </div>
   );
 
+  const handleCardClick = (show_id) => {
+    // Navigate to the new URL
+    window.location.href = `/tv-show/${show_id}`;
+  };  
+
   return (
     <div>
       <Navbar />
@@ -129,20 +151,23 @@ const TvShowDetails = () => {
             color: 'white',
             textShadow: '2px 2px 4px rgba(0,0,0,0.6)',
             padding: '20px',
-            marginTop: 5, // Ensure no additional margin is added
+            marginTop: 5,
           }}
         >
           <Typography 
             variant={isSmallScreen ? 'h5' : 'h2'}
-            sx={{ color: 'black' }} // Apply black color
-            align="center">{show.name}</Typography>
+            sx={{ color: 'black' }} 
+            align="center"
+          >
+            {show.name}
+          </Typography>
         </Box>
         <Grid container spacing={4} padding={4} justifyContent="center">
           <Grid item xs={12} md={6} lg={4}>
             <img
               src={`https://image.tmdb.org/t/p/w500${show.poster_path}`}
               alt={show.name}
-              style={{
+              style={{                
                 alignItems: 'center',
                 width: posterWidth, 
                 borderRadius: '8px',
@@ -152,12 +177,12 @@ const TvShowDetails = () => {
           </Grid>
           <Grid item xs={12} md={6} lg={8}>
             <CardContent>
-              <Typography variant="h4" gutterBottom>
-                <strong>{show.name} </strong>
+              <Typography variant={isSmallScreen ? 'h5' : 'h4'} gutterBottom>
+                <strong>{show.name}</strong>
               </Typography>
               <Typography 
                 variant="body1"
-                sx={{ mt: 2 }} // Adds margin-top to create space between heading and overview
+                sx={{ mt: 2 }}
               >
                 {show.overview}
               </Typography>
@@ -189,7 +214,62 @@ const TvShowDetails = () => {
               </Stack>
             </CardContent>
           </Grid>
-        </Grid>  
+        </Grid>
+  
+        {/* TV Show Recommendation */}
+        <Box sx={{ mt: 4, px: 2 }}>
+          <Typography 
+            variant={isSmallScreen ? 'h5' : 'h3'}
+            align="center" 
+            gutterBottom
+          >
+            You Might Also Like
+          </Typography>
+          
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              overflowX: 'scroll', 
+              scrollbarWidth: 'none', 
+              msOverflowStyle: 'none',
+              whiteSpace: 'nowrap',
+              '&::-webkit-scrollbar': { display: 'none' },
+            }}
+          >
+            {recommendations.map(recommendation => (
+              <Box
+                key={recommendation.id}
+                onClick={() => handleCardClick(recommendation.id)}
+                sx={{ display: 'inline-block', mr: 2, cursor: 'pointer', flexShrink: 0 }}
+              >
+                <Card
+                  sx={{ width: isSmallScreen ? 160 : 200, borderRadius: 2 }}
+                >
+                  <CardMedia
+                    component="img"
+                    height="280"
+                    image={`https://image.tmdb.org/t/p/w500${recommendation.poster_path}`}
+                    alt={recommendation.title}
+                  />
+                  <CardContent>
+                    <Typography variant="subtitle2" noWrap>
+                      {recommendation.title}
+                    </Typography>
+                    <Rating
+                      value={getStarRating(recommendation.vote_average)}
+                      precision={0.1}
+                      readOnly
+                    />
+                    <Typography variant="body2">
+                      {recommendation.vote_average} ({recommendation.vote_count} votes)
+                    </Typography>           
+                  </CardContent>
+                </Card>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+
       </Box>
     </div>
   );
