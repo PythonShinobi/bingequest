@@ -3,7 +3,6 @@ import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import Marquee from 'react-fast-marquee'; // Import the marquee library
 import {  
   CardContent,
   Typography,
@@ -30,10 +29,10 @@ const MovieDetails = () => {
   const [movie, setMovie] = useState(null);
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(null);  
 
   const isSmallScreen = useMediaQuery('(max-width:600px)');
-  const isMediumScreen = useMediaQuery('(min-width:800px) and (max-width:900px)');  
+  const isMediumScreen = useMediaQuery('(min-width:601px) and (max-width:900px)');  
 
   // Set height based on screen size
   const backgroundPictureHeight = isSmallScreen ? '32vh' : isMediumScreen ? '130vh' : '100vh';  
@@ -217,47 +216,63 @@ const MovieDetails = () => {
           </Grid>
         </Grid>
 
-        {/* Movie Recommendations Marquee */}
+        {/* Movie Recommendations */}
         <Box sx={{ mt: 4, px: 2 }}>
-          <Typography variant="h6" align="center" gutterBottom>
+          <Typography 
+            variant={isSmallScreen ? 'h5' : 'h3'}
+            align="center" 
+            gutterBottom
+          >
             You Might Also Like
           </Typography>
-          <Marquee pauseOnHover={true} gradient={false}>
-            {recommendations.map((recommendation) => (
-              <Card
+          
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              overflowX: 'scroll', 
+              scrollbarWidth: 'none', 
+              msOverflowStyle: 'none',
+              whiteSpace: 'nowrap',
+              '&::-webkit-scrollbar': { display: 'none' },
+            }}
+          >
+            {recommendations.map(recommendation => (
+              <Box
                 key={recommendation.id}
-                sx={{
-                  display: 'inline-block',
-                  mx: 1,
-                  cursor: 'pointer',
-                  minWidth: 150, // Fixed width
-                  maxWidth: 150, // Fixed width
-                  height: 280,  // Fixed height
-                  '&:hover': {
-                    transform: 'scale(1.05)',
-                  },
-                }}
                 onClick={() => handleCardClick(recommendation.id)}
+                sx={{ display: 'inline-block', mr: 2, cursor: 'pointer', flexShrink: 0 }}
               >
-                <CardMedia
-                  component="img"
-                  image={`https://image.tmdb.org/t/p/w500${recommendation.poster_path}`}
-                  alt={recommendation.title}
-                  sx={{ height: 200 }}
-                />
-                <CardContent>
-                  <Typography variant="body2" align="center">
-                    {recommendation.title}
-                  </Typography>
-                </CardContent>
-              </Card>
+                <Card
+                  sx={{ width: isSmallScreen ? 160 : 200, borderRadius: 2 }}
+                >
+                  <CardMedia
+                    component="img"
+                    height="270"
+                    image={`https://image.tmdb.org/t/p/w500${recommendation.poster_path}`}
+                    alt={recommendation.title}
+                  />
+                  <CardContent>
+                    <Typography variant="subtitle2" noWrap>
+                      {recommendation.title}
+                    </Typography>
+                    <Rating
+                      value={getStarRating(recommendation.vote_average)}
+                      precision={0.1}
+                      readOnly
+                    />
+                    <Typography variant="body2">
+                      {recommendation.vote_average} ({recommendation.vote_count} votes)
+                    </Typography>           
+                  </CardContent>
+                </Card>
+              </Box>
             ))}
-          </Marquee>
+          </Box>
         </Box>
 
       </Box>
     </div>
-  );
+  );    
 };
 
 export default MovieDetails;
