@@ -183,7 +183,7 @@ const Navbar = () => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h5" component={NavLink} to="/" sx={{ flexGrow: 1, textDecoration: 'none', color: 'inherit' }}>
-            Movie Repository
+            CineVerse
           </Typography>
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}>
             <div className="dropdown">
@@ -219,7 +219,7 @@ const Navbar = () => {
               </div>
             </div>
             <div className="dropdown">
-              <Button component={NavLink} to="/more" color="inherit" sx={{ m: 1 }} activeClassName="active">
+              <Button color="inherit" sx={{ m: 1 }}>
                 More
               </Button>
               <div className="dropdown-content">
