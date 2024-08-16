@@ -279,20 +279,14 @@ const TrendingMovies = () => {
         </Stack>
       </div>
 
+      {/* Back to Top Button */}
       {showBackToTop && (
-        <Fab
-          color="primary"
-          aria-label="scroll back to top"
-          onClick={handleScrollToTop}
-          sx={{
-            position: "fixed",
-            bottom: 16,
-            right: 16,
-          }}
-        >
-          <KeyboardArrowUpIcon />
-        </Fab>
-      )}
+        <div className="back-to-top">
+          <Fab color="primary" size="large" onClick={handleScrollToTop}>
+            <KeyboardArrowUpIcon />
+          </Fab>
+        </div>
+        )}
 
       {/* Menu for selecting movie state */}
       <Menu

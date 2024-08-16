@@ -280,14 +280,11 @@ const TrendingTVShows = () => {
 
         {/* Back to Top Button */}
         {showBackToTop && (
-          <Fab
-            color="primary"
-            aria-label="back to top"
-            className="back-to-top-button"
-            onClick={handleScrollToTop}
-          >
-            <KeyboardArrowUpIcon />
-          </Fab>
+          <div className="back-to-top">
+            <Fab color="primary" size="large" onClick={handleScrollToTop}>
+              <KeyboardArrowUpIcon />
+            </Fab>
+          </div>
         )}
       </div>
 

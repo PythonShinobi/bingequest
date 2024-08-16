@@ -243,9 +243,9 @@ const TopRatedShows = () => {
   }, []);
 
   return (
-    <div>
+    <div className="shows-container">
       <Navbar />
-      <div className="shows-container">
+      <div>
         <SeriesFilterComponent
           onApplyFilters={handleApplyFilters}
           sortOptions={topRatedSortOptions}

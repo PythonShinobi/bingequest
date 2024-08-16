@@ -238,7 +238,7 @@ const PopularTVShows = () => {
   return (
     <div className="shows-container">
       <Navbar />
-      <div className="shows-container">
+      <div>
         <SeriesFilterComponent
           onApplyFilters={handleApplyFilters}
           sortOptions={popularSortOptions}
@@ -274,15 +274,14 @@ const PopularTVShows = () => {
           onChange={handlePageChange}
           sx={{ marginTop: 3, display: 'flex', justifyContent: 'center' }}
         />
+        
+        {/* Back to Top Button */}
         {showBackToTop && (
-          <Fab
-            color="primary"
-            aria-label="scroll back to top"
-            className="back-to-top"
-            onClick={handleScrollToTop}
-          >
-            <KeyboardArrowUpIcon />
-          </Fab>
+          <div className="back-to-top">
+            <Fab color="primary" size="large" onClick={handleScrollToTop}>
+              <KeyboardArrowUpIcon />
+            </Fab>
+          </div>
         )}
       </div>
 

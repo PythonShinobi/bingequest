@@ -238,7 +238,7 @@ const PopularMovies = () => {
   return (
     <div className="movie-container">
       <Navbar />
-      <div className="movie-container">
+      <div>
         <FilterComponent
           onApplyFilters={handleApplyFilters}
           sortOptions={popularSortOptions}
