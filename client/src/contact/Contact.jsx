@@ -77,7 +77,7 @@ const ContactPage = () => {
       <Container style={{ flexGrow: 1, paddingBottom: '2rem' }}>
         <Box mt={11} textAlign='center'>
           <Typography variant='h3' gutterBottom>
-            Contact Me
+            Contact Us
           </Typography>
           <Typography variant='body1' paragraph>
             Have a question or feedback? Reach out to me using the form below:
