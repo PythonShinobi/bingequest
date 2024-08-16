@@ -28,7 +28,7 @@ const FilterComponent = ({ onApplyFilters, sortOptions }) => {
         const response = await axios.get("https://api.themoviedb.org/3/genre/movie/list", {
           headers: {
             "accept": "application/json",
-            "Authorization": `Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiMmQyZmUzMzYwNzdlZWE2MDFhMTc3N2NkZGZiOWNkMSIsIm5iZiI6MTcyMjMzODY1OC4xMDI4MDMsInN1YiI6IjY1ZmE4ZjdhY2Y2MmNkMDE2MzU1NjRkZiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.55HfBBuCNoDNLLNRCNuvBe7g6L-349zcK57cyAlGEtI`  // Replace with your actual access token
+            "Authorization": `Bearer ${process.env.REACT_APP_TMDB_API_TOKEN}`
           }
         });
         setGenres(response.data.genres);
