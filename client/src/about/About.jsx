@@ -1,15 +1,19 @@
 // client/src/about/About.jsx
-import React from "react";
+import React, { useEffect } from "react";
 import { Container, Typography, List, ListItem, ListItemText, Paper } from "@mui/material";
 
 import "./about.css";
 import Navbar from "../navbar/Navbar";
 
 const About = () => {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div className="about-container">
       <Navbar />
-      <Container maxWidth="md" >
+      <Container maxWidth="md">
         <Paper elevation={3} sx={{ padding: 3 }}>
           <Typography variant="h3" component="h1" gutterBottom align="center">
             About Us
@@ -75,6 +79,9 @@ const About = () => {
           </Typography>
           <Typography variant="body1" paragraph>
             Thank you for visiting CineVerse. If you have any feedback or suggestions, feel free to reach out to us.
+          </Typography>
+          <Typography variant="body1" paragraph>
+            <strong>Disclaimer:</strong> CineVerse is an independent platform and is not affiliated, associated, authorized, endorsed by, or in any way officially connected with any specific movie studios, <strong>TMDB</strong>, TV networks, or other media entities. All trademarks, service marks, and company names are the property of their respective owners.
           </Typography>
         </Paper>
       </Container>
