@@ -1,7 +1,6 @@
 // client/src/popular/Shows.jsx
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from "axios";
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import {
@@ -24,6 +23,7 @@ import "./Shows.css";
 import Navbar from "../navbar/Navbar";
 import SeriesFilterComponent from "../components/SeriesFilters";
 import useIsAuthenticated from "../redux/authHook";
+import apiClient from "../apiClient";
 
 // Define a function to scale vote average to a star rating
 const getStarRating = (voteAverage) => {
@@ -62,7 +62,7 @@ const PopularTVShows = () => {
 
     setLoading(true);
     try {
-      const response = await axios.get("/api/tv-shows/popular", {
+      const response = await apiClient.get("/api/tv-shows/popular", {
         params: { page, ...filters },
       });
       const data = {
@@ -123,7 +123,7 @@ const PopularTVShows = () => {
     // Fetch show states if authenticated
     if (isAuthenticated) {
       const user_id = isAuthenticated.id;
-      axios.get(`/api/get_tv_show_states/${user_id}`)
+      apiClient.get(`/api/get_tv_show_states/${user_id}`)
         .then(response => {
           const states = response.data.reduce((acc, item) => {
             acc[item.tv_show_id] = item.state;
@@ -163,7 +163,7 @@ const PopularTVShows = () => {
       const user_id = isAuthenticated.id;
 
       // Make the API call to update the state in the backend
-      axios.post('/api/set_tv_show_state', {
+      apiClient.post('/api/set_tv_show_state', {
         user_id: user_id, // You need to get the current user ID
         tv_show_id: currentShowId,
         state: state,

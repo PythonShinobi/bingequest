@@ -1,7 +1,6 @@
 // client/src/details/PersonDetails.jsx
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
 import {
   Container,
   Card,
@@ -36,7 +35,7 @@ const CelebrityDetails = () => {
         return;
       }
       try {
-        const response = await axios.get(`/api/people/${personId}`);
+        const response = await apiClient.get(`/api/people/${personId}`);
         // Cache the data
         cacheObject.celebrityDetails[personId] = response.data;
         setCelebrity(response.data);

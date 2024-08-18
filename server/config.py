@@ -13,9 +13,9 @@ class Config:
     FRONTEND_ENDPOINT = os.getenv("FRONTEND_ENDPOINT", "http://localhost:3000")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SECURE = False  # Set to True in production
+    SESSION_COOKIE_SECURE = True  # Set to True in production
     REMEMBER_COOKIE_HTTPONLY = True
-    REMEMBER_COOKIE_SECURE = False  # Set to True in production    
+    REMEMBER_COOKIE_SECURE = True  # Set to True in production    
     MAIL_SERVER = os.getenv("MAIL_SERVER", "smtp.gmail.com")
     MAIL_PORT = int(os.getenv("MAIL_PORT") or 25)
     MAIL_USE_TLS = os.getenv("MAIL_USE_TLS", "0").lower() in ["true", "1", "yes"]

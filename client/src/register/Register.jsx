@@ -1,12 +1,12 @@
 // client/src/register/Register.jsx
 import React, { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 import "./Register.css";
 import useIsAuthenticated from "../redux/authHook.js";
 import Navbar from "../navbar/Navbar";
 import Form from "../components/Form";
+import apiClient from "../apiClient.js";
 
 const Register = () => {
   useIsAuthenticated({ redirectTo: "/", redirectIfFound: true });
@@ -32,7 +32,7 @@ const Register = () => {
       }
 
       // Make a POST request to the /register route to the backend.
-      const response = await axios.post("/api/register", body, {withCredentials: true });
+      const response = await apiClient.post("/api/register", body, {withCredentials: true });
 
       if (response.status === 201) {
         // If registration is successful, set the success message.        

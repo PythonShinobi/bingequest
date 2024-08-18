@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { 
   FormControl, 
   InputLabel, 
@@ -9,6 +8,8 @@ import {
   Button, 
   Grid   
 } from "@mui/material";
+
+import apiClient from "../apiClient";
 
 const SeriesFilterComponent = ({ onApplyFilters, sortOptions }) => {
   const [language, setLanguage] = useState("en-US");
@@ -24,7 +25,7 @@ const SeriesFilterComponent = ({ onApplyFilters, sortOptions }) => {
     // Fetch genres from the TMDb API
     const fetchGenres = async () => {
       try {
-        const response = await axios.get("https://api.themoviedb.org/3/genre/tv/list", {
+        const response = await apiClient.get("https://api.themoviedb.org/3/genre/tv/list", {
           headers: {
             "accept": "application/json",
             "Authorization": `Bearer ${process.env.REACT_APP_TMDB_API_TOKEN}`

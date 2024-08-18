@@ -1,7 +1,6 @@
 // client/src/popular/Movie.jsx
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from "axios";
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import {
@@ -24,6 +23,7 @@ import "./Movie.css";
 import Navbar from "../navbar/Navbar";
 import FilterComponent from "../components/Filters";
 import useIsAuthenticated from "../redux/authHook";
+import apiClient from "../apiClient";
 
 // Define a function to scale vote average to a star rating
 const getStarRating = (voteAverage) => {
@@ -62,7 +62,7 @@ const PopularMovies = () => {
 
     setLoading(true);
     try {
-      const response = await axios.get("/api/movies/popular", {
+      const response = await apiClient.get("/api/movies/popular", {
         params: { page, ...filters },
       });
       const data = {
@@ -123,7 +123,7 @@ const PopularMovies = () => {
     // Fetch movie states if authenticated
     if (isAuthenticated) {
       const user_id = isAuthenticated.id;
-      axios.get(`/api/get_movie_states/${user_id}`)
+      apiClient.get(`/api/get_movie_states/${user_id}`)
         .then(response => {
           const states = response.data.reduce((acc, item) => {
             acc[item.movie_id] = item.state;
@@ -163,7 +163,7 @@ const PopularMovies = () => {
       const user_id = isAuthenticated.id;
 
       // Make the API call to update the state in the backend
-      axios.post('/api/set_movie_state', {
+      apiClient.post('/api/set_movie_state', {
         user_id: user_id, // You need to get the current user ID
         movie_id: currentMovieId,
         state: state,

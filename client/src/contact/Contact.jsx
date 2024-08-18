@@ -1,6 +1,5 @@
 // client/src/contact/Contact.jsx
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import {
   Container, 
   Typography, 
@@ -12,6 +11,7 @@ import {
 } from "@mui/material";
 
 import Navbar from "../navbar/Navbar";
+import apiClient from "../apiClient";
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -39,7 +39,7 @@ const ContactPage = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      await axios.post("/api/contact", formData);
+      await apiClient.post("/api/contact", formData);
       setSnackbar({
         open: true,
         message: "Email sent successfully!",

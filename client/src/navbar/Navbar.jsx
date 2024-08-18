@@ -183,7 +183,7 @@ const Navbar = () => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h5" component={NavLink} to="/" sx={{ flexGrow: 1, textDecoration: 'none', color: 'inherit' }}>
-            CineVerse
+            BingeQuest
           </Typography>
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}>
             <div className="dropdown">

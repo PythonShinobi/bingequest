@@ -1,7 +1,6 @@
 // client/src/upcoming/Movies.jsx
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from "axios";
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import {
@@ -24,6 +23,7 @@ import "./Movie.css";
 import Navbar from "../navbar/Navbar";
 import FilterComponent from "../components/Filters";
 import useIsAuthenticated from "../redux/authHook";
+import apiClient from "../apiClient";
 
 // Define a function to scale vote average to a star rating
 const getStarRating = (voteAverage) => {
@@ -62,7 +62,7 @@ const UpcomingMovies = () => {
 
     setLoading(true);
     try {
-      const response = await axios.get("/api/movies/upcoming", {
+      const response = await apiClient.get("/api/movies/upcoming", {
         params: { page, ...filters },
       });
       const data = {
@@ -83,7 +83,7 @@ const UpcomingMovies = () => {
     if (isAuthenticated) {
       const user_id = isAuthenticated.id;
       try {
-        const response = await axios.get(`/api/get_movie_states/${user_id}`);
+        const response = await apiClient.get(`/api/get_movie_states/${user_id}`);
         const states = response.data.reduce((acc, item) => {
           acc[item.movie_id] = item.state;
           return acc;
@@ -140,7 +140,7 @@ const UpcomingMovies = () => {
       const user_id = isAuthenticated.id;
 
       // Make the API call to update the state in the backend
-      axios.post('/api/set_movie_state', {
+      apiClient.post('/api/set_movie_state', {
         user_id: user_id,
         movie_id: currentMovieId,
         state: state,

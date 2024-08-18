@@ -1,7 +1,6 @@
 // client/src/trending/TrendingTVShows.jsx
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from "axios";
 import useMediaQuery from '@mui/material/useMediaQuery';
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import {
@@ -23,6 +22,7 @@ import {
 import "./TrendingTVShows.css";
 import Navbar from "../navbar/Navbar";
 import useIsAuthenticated from "../redux/authHook";
+import apiClient from "../apiClient";
 
 // Define a function to scale vote average to a star rating
 const getStarRating = (voteAverage) => {
@@ -61,7 +61,7 @@ const TrendingTVShows = () => {
         return;
       }
       
-      const response = await axios.get("/api/tv-shows/trending", {
+      const response = await apiClient.get("/api/tv-shows/trending", {
         params: { page },
       });
       const data = {
@@ -83,7 +83,7 @@ const TrendingTVShows = () => {
     if (isAuthenticated) {
       const user_id = isAuthenticated.id;
       try {
-        const response = await axios.get(`/api/get_tv_show_states/${user_id}`);
+        const response = await apiClient.get(`/api/get_tv_show_states/${user_id}`);
         const states = response.data.reduce((acc, item) => {
           acc[item.tv_show_id] = item.state;
           return acc;
@@ -131,7 +131,7 @@ const TrendingTVShows = () => {
       const user_id = isAuthenticated.id;
 
       // Make the API call to update the state in the backend
-      axios.post('/api/set_tv_show_state', {
+      apiClient.post('/api/set_tv_show_state', {
         user_id: user_id, // You need to get the current user ID
         tv_show_id: currentShowId,
         state: state,

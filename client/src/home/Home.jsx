@@ -1,6 +1,5 @@
 // client/src/home/Home.jsx
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Marquee from "react-fast-marquee";
 import {
@@ -16,6 +15,7 @@ import {
 
 import "./Home.css";
 import Navbar from "../navbar/Navbar";
+import apiClient from "../apiClient";
 
 // Cache object
 const cacheObject = {
@@ -48,7 +48,7 @@ const Home = () => {
       }
 
       try {
-        const response = await axios.get("/api/home/in-theatres");
+        const response = await apiClient.get("/api/home/in-theatres");
         cacheObject.movies = response.data.results; // Cache the data
         setMovies(response.data.results);
       } catch (error) {
@@ -66,7 +66,7 @@ const Home = () => {
       }
 
       try {
-        const response = await axios.get("/api/home/movie-top-rated");
+        const response = await apiClient.get("/api/home/movie-top-rated");
         cacheObject.topRatedMovies = response.data.results; // Cache the data
         setTopRatedMovies(response.data.results);
       } catch (error) {
@@ -84,7 +84,7 @@ const Home = () => {
       }
 
       try {
-        const response = await axios.get("/api/home/show-top-rated");
+        const response = await apiClient.get("/api/home/show-top-rated");
         cacheObject.topRatedTvShows = response.data.results; // Cache the data
         setTopRatedTvShows(response.data.results);
       } catch (error) {

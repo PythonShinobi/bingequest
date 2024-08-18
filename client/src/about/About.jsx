@@ -19,10 +19,10 @@ const About = () => {
             About Us
           </Typography>
           <Typography variant="body1" paragraph>
-            Welcome to CineVerse, your ultimate destination for discovering and managing movies and TV shows. Our website is dedicated to providing you with a comprehensive and engaging media experience.
+            Welcome to BingeQuest, your ultimate destination for discovering and managing movies and TV shows. Our website is dedicated to providing you with a comprehensive and engaging media experience.
           </Typography>
           <Typography variant="body1" paragraph>
-            With CineVerse, you can:
+            With BingeQuest, you can:
           </Typography>
           <List>
             <ListItem>
@@ -75,13 +75,13 @@ const About = () => {
             </ListItem>
           </List>
           <Typography variant="body1" paragraph>
-            Our mission is to enhance your media-watching experience by offering an easy-to-use platform that brings together movie and TV show discovery and personal tracking. Whether you're a casual viewer or a dedicated fan, CineVerse is here to help you stay connected with the latest in entertainment.
+            Our mission is to enhance your media-watching experience by offering an easy-to-use platform that brings together movie and TV show discovery and personal tracking. Whether you're a casual viewer or a dedicated fan, BingeQuest is here to help you stay connected with the latest in entertainment.
           </Typography>
           <Typography variant="body1" paragraph>
-            Thank you for visiting CineVerse. If you have any feedback or suggestions, feel free to reach out to us.
+            Thank you for visiting BingeQuest. If you have any feedback or suggestions, feel free to reach out to us.
           </Typography>
           <Typography variant="body1" paragraph>
-            <strong>Disclaimer:</strong> CineVerse is an independent platform and is not affiliated, associated, authorized, endorsed by, or in any way officially connected with any specific movie studios, <strong>TMDB</strong>, TV networks, or other media entities. All trademarks, service marks, and company names are the property of their respective owners.
+            <strong>Disclaimer:</strong> BingeQuest is an independent platform and is not affiliated, associated, authorized, endorsed by, or in any way officially connected with any specific movie studios, <strong>TMDB</strong>, TV networks, or other media entities. All trademarks, service marks, and company names are the property of their respective owners.
           </Typography>
         </Paper>
       </Container>

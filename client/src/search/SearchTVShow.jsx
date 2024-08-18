@@ -1,7 +1,6 @@
 // client/src/search/SearchTVShow.jsx
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from "axios";
 import Skeleton from "react-loading-skeleton";
 import 'react-loading-skeleton/dist/skeleton.css';
 import SearchIcon from "@mui/icons-material/Search";
@@ -29,6 +28,7 @@ import {
 import "./SearchTVShow.css";
 import Navbar from "../navbar/Navbar";
 import useIsAuthenticated from "../redux/authHook";
+import apiClient from "../apiClient";
 
 // Define a function to scale vote average to a star rating
 const getStarRating = (voteAverage) => {
@@ -66,7 +66,7 @@ const SearchTVShow = () => {
 
     setLoading(true);
     try {
-      const response = await axios.get("/api/tv-shows/search", {
+      const response = await apiClient.get("/api/tv-shows/search", {
         params: { query, page }
       });
       const data = {
@@ -87,7 +87,7 @@ const SearchTVShow = () => {
     if (isAuthenticated) {
       const user_id = isAuthenticated.id;
       try {
-        const response = await axios.get(`/api/get_tv_show_states/${user_id}`);
+        const response = await apiClient.get(`/api/get_tv_show_states/${user_id}`);
         const states = response.data.reduce((acc, item) => {
           acc[item.tv_show_id] = item.state;
           return acc;
@@ -137,7 +137,7 @@ const SearchTVShow = () => {
       }));
 
       const user_id = isAuthenticated.id;
-      axios.post('/api/set_tv_show_state', {
+      apiClient.post('/api/set_tv_show_state', {
         user_id: user_id,
         tv_show_id: currentTvShowId,
         state: state,

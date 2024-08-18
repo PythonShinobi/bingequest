@@ -1,6 +1,5 @@
 // client/src/details/TVShowDetails.jsx
 import React, { useEffect, useState, useMemo, memo } from 'react';
-import axios from 'axios';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useParams } from 'react-router-dom';
 import {  
@@ -18,6 +17,7 @@ import {
 } from '@mui/material';
 
 import Navbar from '../navbar/Navbar';
+import apiClient from "../apiClient"
 
 // Define a function to scale vote average to a star rating
 const getStarRating = (voteAverage) => {
@@ -50,7 +50,7 @@ const TvShowDetails = () => {
     const fetchTvShowDetails = async () => {
       try {
         if (!cacheObject.tvShowDetails) {
-          const response = await axios.get(`/api/tv-show/${showId}`);
+          const response = await apiClient.get(`/api/tv-show/${showId}`);
           cacheObject.tvShowDetails = response.data;
           setShow(response.data);
         }
@@ -64,7 +64,7 @@ const TvShowDetails = () => {
     const fetchRecommendations = async () => {
       try {
         if (!cacheObject.movieRecommendations) {
-          const response = await axios.get(`/api/tv-show/recommendations/${showId}`);
+          const response = await apiClient.get(`/api/tv-show/recommendations/${showId}`);
           cacheObject.movieRecommendations = response.data.results;
           setRecommendations(response.data.results);
         }
@@ -82,7 +82,7 @@ const TvShowDetails = () => {
     const fetchShowVideos = async () => {
       try {
         if (showId) {
-          const response = await axios.get(`/api/tv-show/video/${showId}`); // Changed seriesId to showId          
+          const response = await apiClient.get(`/api/tv-show/video/${showId}`); // Changed seriesId to showId          
           setVideos(response.data.results);
         }
       } catch (error) {        

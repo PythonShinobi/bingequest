@@ -1,7 +1,6 @@
 // client/src/people/PopularPeople.jsx
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import axios from "axios";
 import {
   Grid,
   Card,
@@ -21,6 +20,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 
 import "./PopularPeople.css";
 import Navbar from "../navbar/Navbar";
+import apiClient from "../apiClient";
 
 // Define a function to scale popularity to a star rating (optional)
 const getPopularityRating = (popularity) => {
@@ -54,7 +54,7 @@ const PopularPeople = () => {
       return;
     }
     try {
-      const response = await axios.get("/api/people/popular", {
+      const response = await apiClient.get("/api/people/popular", {
         params: { page },
       });
       // Cache the data
@@ -83,7 +83,7 @@ const PopularPeople = () => {
       return;
     }
     try {
-      const response = await axios.get("/api/search/popular", {
+      const response = await apiClient.get("/api/search/popular", {
         params: {
           page, 
           query,

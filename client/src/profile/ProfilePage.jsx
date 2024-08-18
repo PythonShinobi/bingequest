@@ -1,7 +1,6 @@
 // client/src/profile/ProfilePage.jsx
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams } from "react-router-dom";
-import axios from 'axios';
 import { 
   Box, 
   Tab, 
@@ -19,6 +18,7 @@ import {
 import './ProfilePage.css';
 import Navbar from '../navbar/Navbar';
 import useIsAuthenticated from '../redux/authHook';
+import apiClient from '../apiClient';
 
 const ProfilePage = () => {
   const [tabValue, setTabValue] = useState(0);
@@ -72,61 +72,61 @@ const ProfilePage = () => {
       try {
         // Check cache before making requests
         if (!cacheObject.completedMovies) {
-          const completedMoviesRes = await axios.get(`/api/watchlist/completed/${user.id}`);
+          const completedMoviesRes = await apiClient.get(`/api/watchlist/completed/${user.id}`);
           cacheObject.completedMovies = completedMoviesRes.data;
           setCompletedList(cacheObject.completedMovies);
         }
 
         if (!cacheObject.watchingMovies) {
-          const watchingMoviesRes = await axios.get(`/api/watchlist/watching/${user.id}`);
+          const watchingMoviesRes = await apiClient.get(`/api/watchlist/watching/${user.id}`);
           cacheObject.watchingMovies = watchingMoviesRes.data;
           setWatchingList(cacheObject.watchingMovies);
         }
 
         if (!cacheObject.planToWatchMovies) {
-          const planToWatchMoviesRes = await axios.get(`/api/watchlist/plan-to-watch/${user.id}`);
+          const planToWatchMoviesRes = await apiClient.get(`/api/watchlist/plan-to-watch/${user.id}`);
           cacheObject.planToWatchMovies = planToWatchMoviesRes.data;
           setPlanToWatchList(cacheObject.planToWatchMovies);
         }
 
         if (!cacheObject.onHoldMovies) {
-          const onHoldMoviesRes = await axios.get(`/api/watchlist/on-hold/${user.id}`);
+          const onHoldMoviesRes = await apiClient.get(`/api/watchlist/on-hold/${user.id}`);
           cacheObject.onHoldMovies = onHoldMoviesRes.data;
           setOnHoldList(cacheObject.onHoldMovies);
         }
 
         if (!cacheObject.droppedMovies) {
-          const droppedMoviesRes = await axios.get(`/api/watchlist/dropped/${user.id}`);
+          const droppedMoviesRes = await apiClient.get(`/api/watchlist/dropped/${user.id}`);
           cacheObject.droppedMovies = droppedMoviesRes.data;
           setDroppedList(cacheObject.droppedMovies);
         }
 
         if (!cacheObject.completedTVShows) {
-          const completedTVShowsRes = await axios.get(`/api/tv-watchlist/completed/${user.id}`);
+          const completedTVShowsRes = await apiClient.get(`/api/tv-watchlist/completed/${user.id}`);
           cacheObject.completedTVShows = completedTVShowsRes.data;
           setCompletedTVShows(cacheObject.completedTVShows);
         }
 
         if (!cacheObject.watchingTVShows) {
-          const watchingTVShowsRes = await axios.get(`/api/tv-watchlist/watching/${user.id}`);
+          const watchingTVShowsRes = await apiClient.get(`/api/tv-watchlist/watching/${user.id}`);
           cacheObject.watchingTVShows = watchingTVShowsRes.data;
           setWatchingTVShows(cacheObject.watchingTVShows);
         }
 
         if (!cacheObject.planToWatchTVShows) {
-          const planToWatchTVShowsRes = await axios.get(`/api/tv-watchlist/plan-to-watch/${user.id}`);
+          const planToWatchTVShowsRes = await apiClient.get(`/api/tv-watchlist/plan-to-watch/${user.id}`);
           cacheObject.planToWatchTVShows = planToWatchTVShowsRes.data;
           setPlanToWatchTVShows(cacheObject.planToWatchTVShows);
         }
 
         if (!cacheObject.onHoldTVShows) {
-          const onHoldTVShowsRes = await axios.get(`/api/tv-watchlist/on-hold/${user.id}`);
+          const onHoldTVShowsRes = await apiClient.get(`/api/tv-watchlist/on-hold/${user.id}`);
           cacheObject.onHoldTVShows = onHoldTVShowsRes.data;
           setOnHoldTVShows(cacheObject.onHoldTVShows);
         }
 
         if (!cacheObject.droppedTVShows) {
-          const droppedTVShowsRes = await axios.get(`/api/tv-watchlist/dropped/${user.id}`);
+          const droppedTVShowsRes = await apiClient.get(`/api/tv-watchlist/dropped/${user.id}`);
           cacheObject.droppedTVShows = droppedTVShowsRes.data;
           setDroppedTVShows(cacheObject.droppedTVShows);
         }
@@ -156,7 +156,7 @@ const ProfilePage = () => {
   const handleRemoveMovie = async (movieId, state) => {
     if (user) {
       try {        
-        await axios.delete(`/api/watchlist/${state.toLowerCase()}/${user.id}/${movieId}`);        
+        await apiClient.delete(`/api/watchlist/${state.toLowerCase()}/${user.id}/${movieId}`);        
         fetchWatchLists(); // Refresh the watchlists after removal
       } catch (error) {
          console.error('Error removing movie:', error.response ? error.response.data : error.message);
@@ -167,7 +167,7 @@ const ProfilePage = () => {
   const handleRemoveTVShow = async (tvShowId, state) => {
     if (user) {
       try {
-        await axios.delete(`/api/tv-watchlist/${state.toLowerCase()}/${user.id}/${tvShowId}`);
+        await apiClient.delete(`/api/tv-watchlist/${state.toLowerCase()}/${user.id}/${tvShowId}`);
         fetchWatchLists(); // Refresh the watchlists after removal
       } catch (error) {
         console.error('Error removing TV show:', error.response ? error.response.data : error.message);
@@ -178,7 +178,7 @@ const ProfilePage = () => {
   const handleDeleteAccount = async () => {
     if (user) {
       try {
-        await axios.delete('/api/delete-account');
+        await apiClient.delete('/api/delete-account');
         // Perform any necessary cleanup or redirection after account deletion
         navigate('/login'); // Redirect to login page or any other desired page
       } catch (error) {
