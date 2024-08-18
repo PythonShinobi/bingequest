@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 
 import Navbar from "../navbar/Navbar";
+import apiClient from "../apiClient";
 
 // Cache Object
 const cacheObject = {
