@@ -12,4 +12,4 @@ def make_shell_context():
 # Check if the script is being run directly
 if __name__ == '__main__':
     # Run the Flask application on port 5000
-    flask_app.run(debug=True, port=5000)
+    flask_app.run(debug=False, port=5000)

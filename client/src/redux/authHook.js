@@ -46,6 +46,9 @@ const useIsAuthenticated = ({ redirectTo, redirectIfFound } = {}) => {
   const navigate = useNavigate();
   const { data, error } = useSWR("/api/user", fetcher, { revalidateOnFocus: true });  
   const user = data?.user;  // Extract user data from the response.  
+
+  console.log(user);
+
   const finished = Boolean(data);  // Check if the data fetching is complete.
   const hasUser = Boolean(user);  // Check if a user is present.  
 
