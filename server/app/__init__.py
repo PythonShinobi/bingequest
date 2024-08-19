@@ -20,9 +20,7 @@ def create_app(config=Config):
     flask_app.config.from_object(config)
 
     db.init_app(flask_app)
-
     migrate.init_app(flask_app, db)
-
     login_manager.init_app(flask_app)    
 
     # Register the authentication blueprint.
@@ -62,13 +60,11 @@ def create_app(config=Config):
 
     # Setup logging
     if not flask_app.debug:
-        handler = RotatingFileHandler('error.log', maxBytes=10240, backupCount=0)
+        log_path = '/tmp/error.log'  # Use a writable path
+        handler = RotatingFileHandler(log_path, maxBytes=10240, backupCount=1)
         handler.setLevel(logging.ERROR)
-        
-        # Set up a log formatter with timestamps
         formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
         handler.setFormatter(formatter)
-        
         flask_app.logger.addHandler(handler)
 
     return flask_app
