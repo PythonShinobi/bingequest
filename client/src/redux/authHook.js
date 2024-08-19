@@ -44,9 +44,7 @@ const useIsAuthenticated = ({ redirectTo, redirectIfFound } = {}) => {
   const user = data || "guest"; // Use "guest" as a fallback if no user data is found
   const finished = Boolean(data || error); // Check if data fetching is complete.
   const hasUser = user !== "guest"; // Check if user data exists.
-
-  console.log(user);
-
+  
   useEffect(() => {
     if (finished) {
       if (hasUser) {
