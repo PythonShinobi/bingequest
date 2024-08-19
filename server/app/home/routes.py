@@ -4,6 +4,10 @@ from flask import jsonify, request
 from app.home import bp
 from config import Config
 
+@bp.route('/', methods=['GET'])
+def success_endpoint():
+    return 'Endpoint working.'
+
 @bp.route('/home/in-theatres', methods=['GET'])    
 def get_currently_in_theatres():
     token = Config.ACCESS_TOKEN
