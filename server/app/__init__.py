@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -16,7 +17,14 @@ login_manager.login_view = "auth.login"
 
 
 def create_app(config=Config):
-    flask_app = Flask(__name__)
+    # Set a writable instance path
+    instance_path = '/tmp/instance'
+    
+    # Ensure the writable path exists
+    if not os.path.exists(instance_path):
+        os.makedirs(instance_path)
+
+    flask_app = Flask(__name__, instance_path=instance_path, instance_relative_config=True)
     flask_app.config.from_object(config)
 
     db.init_app(flask_app)
