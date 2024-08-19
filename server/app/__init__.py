@@ -1,5 +1,6 @@
 import os
 from flask import Flask
+from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
@@ -30,6 +31,9 @@ def create_app(config=Config):
     db.init_app(flask_app)
     migrate.init_app(flask_app, db)
     login_manager.init_app(flask_app)    
+
+    # Initialize CORS with your frontend URL
+    CORS(flask_app, resources={r"/*": {"origins": flask_app.config["FRONTEND_ENDPOINT"]}})
 
     # Register the authentication blueprint.
     from app.auth import bp as auth_bp
