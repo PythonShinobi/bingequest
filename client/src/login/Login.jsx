@@ -1,12 +1,12 @@
 // client/src/login/Login.jsx
 import React, { useState } from "react";
-import axios from "axios";
 import { mutate } from "swr"; // Import mutate
 
 import "./Login.css";
 import useIsAuthenticated from "../redux/authHook.js";
 import Navbar from "../navbar/Navbar";
 import Form from "../components/Form";
+import apiClient from "../apiClient.js";
 
 const Login = () => {
   useIsAuthenticated({ redirectTo: "/", redirectIfFound: true });
@@ -24,7 +24,7 @@ const Login = () => {
       };
 
       // Make a POST request using axios with cookies and CSRF token
-      const response = await axios.post("/api/login", body, { withCredentials: true,});
+      const response = await apiClient.post("/api/login", body, { withCredentials: true,});
 
       if (response.status === 200) {
         setSuccess("Login successful"); // Set success message.
