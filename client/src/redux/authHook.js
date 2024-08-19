@@ -31,7 +31,7 @@ const fetcher = async (url) => {
 
     return { user };
   } catch (error) {
-    console.error('Error fetching user data:', error);
+    console.error('Error fetching user data:', error.response || error.message || error);
     throw error; // Re-throw the error for the caller to handle.
   }
 };

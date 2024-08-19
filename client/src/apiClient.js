@@ -7,6 +7,7 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 // Create an Axios instance with the base URL
 const apiClient = axios.create({
     baseURL: API_BASE_URL,
+    withCredentials: true // Ensure credentials (cookies) are sent with requests
 });
 
 export default apiClient;
