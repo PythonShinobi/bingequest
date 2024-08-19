@@ -141,7 +141,7 @@ const Navbar = () => {
           <MenuItem component={NavLink} to="/about">About</MenuItem>           
           <MenuItem component={NavLink} to="/contact">Contact</MenuItem>           
         </Menu>
-        {!user && (
+        {!user || user === "guest" ? (
           <>
             <ListItem component={NavLink} to="/login">
               <LoginIcon sx={{ mr: 1, color: "black" }} />
@@ -152,8 +152,7 @@ const Navbar = () => {
               <ListItemText primaryTypographyProps={{ sx: { color: 'black' } }} primary="Register" />
             </ListItem>
           </>
-        )}
-        {user && (
+        ) : (
           <>
             <ListItem onClick={showProfile}>
               <AccountCircleIcon sx={{ mr: 1, color: "black" }} />
@@ -229,7 +228,7 @@ const Navbar = () => {
             </div>
           </Box>
           <Box sx={{ display: { xs: 'none', md: 'flex' }, justifyContent: 'flex-end' }}>
-            {!user && (
+            {!user || user === "guest" ? (
               <>
                 <Button component={NavLink} to="/login" color="inherit" sx={{ m: 1 }} activeClassName="active">
                   <LoginIcon sx={{ mr: 1 }} />
@@ -240,8 +239,7 @@ const Navbar = () => {
                   Register
                 </Button>
               </>
-            )}
-            {user && (
+            ) : (
               <>
                 <Button onClick={showProfile} color="inherit" sx={{ m: 1 }} activeClassName="active">
                   <AccountCircleIcon sx={{ mr: 1 }} />
