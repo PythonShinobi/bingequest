@@ -23,6 +23,7 @@ import useSWR from "swr";
 const fetcher = async (url) => {
   try {
     const response = await axios.get(url, { withCredentials: true });
+    console.log('Fetched user data:', response.data); // Log fetched data
     return response.data; // Return the user data directly.
   } catch (error) {
     console.error('Error fetching user data:', error);
