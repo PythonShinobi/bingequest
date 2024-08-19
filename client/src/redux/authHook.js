@@ -4,7 +4,7 @@
 // manage authentication state, and handle redirection based on authentication status 
 // within your React application.
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useSWR from "swr";
 
