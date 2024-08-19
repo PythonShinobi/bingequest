@@ -9,7 +9,7 @@ load_dotenv(ENV)
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", 'you-will-never-guess')
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", 'sqlite:///app.db')
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///tmp/app.db'
     FRONTEND_ENDPOINT = os.getenv("FRONTEND_ENDPOINT", "https://bingequest.developer-path.org")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SESSION_COOKIE_HTTPONLY = True
