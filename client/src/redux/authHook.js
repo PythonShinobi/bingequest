@@ -4,7 +4,7 @@
 // manage authentication state, and handle redirection based on authentication status 
 // within your React application.
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import useSWR from "swr";
@@ -44,6 +44,8 @@ const useIsAuthenticated = ({ redirectTo, redirectIfFound } = {}) => {
   const user = data || "guest"; // Use "guest" as a fallback if no user data is found
   const finished = Boolean(data || error); // Check if data fetching is complete.
   const hasUser = user !== "guest"; // Check if user data exists.
+
+  console.log(user);
 
   useEffect(() => {
     if (finished) {
