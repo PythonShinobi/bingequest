@@ -48,6 +48,7 @@ const useIsAuthenticated = ({ redirectTo, redirectIfFound } = {}) => {
   const { data, error } = useSWR("/api/user", fetcher, { revalidateOnFocus: true });
   const [authStatus, setAuthStatus] = useState("loading"); // State to track auth status
   const user = data || "guest"; // Use "guest" as a fallback if no user data is found
+  console.log("authHook returns ----->", user);
   const finished = Boolean(data || error); // Check if data fetching is complete.
   const hasUser = user !== "guest"; // Check if user data exists.
 
