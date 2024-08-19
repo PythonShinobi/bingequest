@@ -4,10 +4,11 @@
 // manage authentication state, and handle redirection based on authentication status 
 // within your React application.
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import useSWR from "swr";
+
+import apiClient from "../apiClient";
 
 /**
  * Fetcher function to fetch user data from the given URL and return a user object.
@@ -22,8 +23,8 @@ import useSWR from "swr";
  */
 const fetcher = async (url) => {
   try {
-    const response = await axios.get(url, { withCredentials: true });
-    console.log('Fetched user data:', response.data); // Log fetched data
+    const response = await apiClient.get(url, { withCredentials: true });
+    console.log('fetched data: ', response.data);
     return response.data; // Return the user data directly.
   } catch (error) {
     console.error('Error fetching user data:', error);
@@ -45,7 +46,7 @@ const useIsAuthenticated = ({ redirectTo, redirectIfFound } = {}) => {
   const user = data || "guest"; // Use "guest" as a fallback if no user data is found
   const finished = Boolean(data || error); // Check if data fetching is complete.
   const hasUser = user !== "guest"; // Check if user data exists.
-  
+
   useEffect(() => {
     if (finished) {
       if (hasUser) {
