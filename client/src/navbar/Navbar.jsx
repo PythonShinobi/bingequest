@@ -35,7 +35,8 @@ const Navbar = () => {
   const [moreMenuAnchor, setMoreMenuAnchor] = useState(null);
 
   const user = useIsAuthenticated();
-  console.log(user);
+  console.log("User object:", user?.username);
+  console.log("User object:", user?.email);
   const navigate = useNavigate();  
 
   const handleDrawerToggle = () => {
