@@ -6,8 +6,9 @@
 
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import useSWR from "swr";
+
+import apiClient from "../apiClient.js";
 
 /**
  * Fetcher function to fetch user data from the given URL and return a user object.
@@ -22,10 +23,11 @@ import useSWR from "swr";
  */
 const fetcher = async (url) => {
   try {
-    const response = await axios.get(url, { withCredentials: true });
+    const response = await apiClient.get(url, { withCredentials: true });
+    console.log('Fetched user data: ', response.data)
 
     // Extract the user data from the response and return it.
-    const user = response.data || null;    
+    const user = response.data || null;  
 
     return { user };
   } catch (error) {
