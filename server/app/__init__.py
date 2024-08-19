@@ -2,7 +2,6 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
-from flask_cors import CORS
 import logging
 from logging.handlers import RotatingFileHandler
 
@@ -15,7 +14,6 @@ migrate = Migrate()
 login_manager = LoginManager()
 login_manager.login_view = "auth.login"
 
-cors = CORS()
 
 def create_app(config=Config):
     flask_app = Flask(__name__)
@@ -25,9 +23,7 @@ def create_app(config=Config):
 
     migrate.init_app(flask_app, db)
 
-    login_manager.init_app(flask_app)
-
-    cors.init_app(flask_app, origins=config.FRONTEND_ENDPOINT, supports_credentials=True)
+    login_manager.init_app(flask_app)    
 
     # Register the authentication blueprint.
     from app.auth import bp as auth_bp
