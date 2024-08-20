@@ -17,7 +17,7 @@ import {
 
 import './ProfilePage.css';
 import Navbar from '../navbar/Navbar';
-import useIsAuthenticated from '../redux/authHook';
+import getUser from '../redux/getUser';
 import apiClient from '../apiClient';
 
 const ProfilePage = () => {
@@ -38,7 +38,7 @@ const ProfilePage = () => {
   const [droppedTVShows, setDroppedTVShows] = useState([]);
 
   const navigate = useNavigate();  
-  const user = useIsAuthenticated(); // Assuming this hook gets the authenticated user
+  const user = getUser(); // Assuming this hook gets the authenticated user
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));  
   const isVerySmallScreen = useMediaQuery("(max-width:360px)");
