@@ -5,8 +5,5 @@
   ],
   "routes": [
     { "src": "/(.*)", "dest": "run.py" }
-  ],
-  "hooks": {
-    "build": "flask db upgrade"
-  }
+  ]
 }
