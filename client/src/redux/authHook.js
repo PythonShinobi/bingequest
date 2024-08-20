@@ -4,7 +4,7 @@
 // manage authentication state, and handle redirection based on authentication status 
 // within your React application.
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import useSWR from "swr";
 
@@ -27,11 +27,12 @@ const fetcher = async (url) => {
     console.log('Fetched user data: ', response.data)
 
     // Extract the user data from the response and return it.
-    const user = response.data || null;  
+    const user = response.data || null;    
 
     return { user };
   } catch (error) {
-    console.error('Error fetching user data:', error.response || error.message || error);
+    // Handle any errors that occur during the request.
+    console.error('Error fetching user data:', error);
     throw error; // Re-throw the error for the caller to handle.
   }
 };
@@ -45,30 +46,32 @@ const fetcher = async (url) => {
  */
 const useIsAuthenticated = ({ redirectTo, redirectIfFound } = {}) => {
   const navigate = useNavigate();
-  const { data, error } = useSWR("/api/user", fetcher, { revalidateOnFocus: true });
-  const [authStatus, setAuthStatus] = useState("loading"); // State to track auth status
-  const user = data || "guest"; // Use "guest" as a fallback if no user data is found  
-  const finished = Boolean(data || error); // Check if data fetching is complete.
-  const hasUser = user !== "guest"; // Check if user data exists.
+  const { data, error } = useSWR("/api/user", fetcher, { revalidateOnFocus: true });  
+  const user = data?.user;  // Extract user data from the response.  
 
+  console.log(user);
+
+  const finished = Boolean(data);  // Check if the data fetching is complete.
+  const hasUser = Boolean(user);  // Check if a user is present.  
+
+  // useEffect hook to handle redirection based on the user's authentication status.
   useEffect(() => {
-    if (finished) {
-      if (hasUser) {
-        setAuthStatus("loggedIn");
-        if (redirectIfFound && redirectTo) {
-          navigate(redirectTo); // Redirect if user is already authenticated.
-        }
-      } else {
-        setAuthStatus("loggedOut");
-        if (redirectTo && !redirectIfFound) {
-          navigate(redirectTo); // Redirect if user is not authenticated.
-        }
-      }
-    }
-  }, [finished, hasUser, redirectTo, redirectIfFound, navigate]);
+    // If redirectTo is not set or data fetching is not finished, do nothing.
+    if (!redirectTo || !finished) return;
 
-  // Return user if authenticated, or "guest" if not.
-  return authStatus === "loggedIn" ? user : "guest";
+    // Redirect logic:
+    // If redirectTo is set, redirect if the user was not found.
+    if (
+      (redirectTo && !redirectIfFound && !hasUser) ||
+      // If redirectIfFound is also set, redirect if the user was found.
+      (redirectIfFound && hasUser)
+    ) {
+      navigate(redirectTo); // Redirect to the specified path.
+    }
+  }, [redirectTo, redirectIfFound, finished, hasUser, navigate]);
+
+  // Return the user data if no error occurred, otherwise return null.
+  return error ? null : user;
 };
 
 export default useIsAuthenticated;

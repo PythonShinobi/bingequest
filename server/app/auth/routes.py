@@ -79,18 +79,10 @@ def login():
 
     if not user or not check_password_hash(user.password, password):
         return jsonify({"message": "Invalid email or password"}), 401
-
-    print(f'User data: {user}')
+    
     login_user(user)
 
-    # Prepare the response with user data
-    user_data = {
-        "id": user.id,
-        "username": user.username,
-        # Add other fields as needed
-    }
-
-    response = jsonify({"message": "Login successful", "user": user_data})
+    response = jsonify({"message": "Login successful"})
     return response, 200
 
 @bp.route('/logout')
