@@ -23,7 +23,7 @@ import apiClient from "../apiClient";
  */
 const fetcher = async (url) => {
   try {
-    const response = await apiClient.get(url, { withCredentials: true });
+    const response = await apiClient.get(url);
     console.log('Fetched user data: ', response.data)
 
     // Extract the user data from the response and return it.

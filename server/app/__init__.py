@@ -33,7 +33,7 @@ def create_app(config=Config):
     login_manager.init_app(flask_app)    
 
     # Initialize CORS with your frontend URL
-    CORS(flask_app, resources={r"/*": {"origins": flask_app.config["FRONTEND_ENDPOINT"]}})
+    CORS(flask_app, resources={r"/*": {"origins": flask_app.config["FRONTEND_ENDPOINT"], "supports_credentials": True}})
 
     # Register the authentication blueprint.
     from app.auth import bp as auth_bp
