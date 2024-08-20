@@ -46,29 +46,30 @@ const fetcher = async (url) => {
 const useIsAuthenticated = ({ redirectTo, redirectIfFound } = {}) => {
   const navigate = useNavigate();
   const { data, error } = useSWR("/api/user", fetcher, { revalidateOnFocus: true });
-  const [authStatus, setAuthStatus] = useState("loading"); // State to track auth status
-  const user = data || "guest"; // Use "guest" as a fallback if no user data is found  
-  const finished = Boolean(data || error); // Check if data fetching is complete.
-  const hasUser = user !== "guest"; // Check if user data exists.
+  const [authStatus, setAuthStatus] = useState("loading");
+
+  const finished = Boolean(data || error);
+  const hasUser = data && data !== "guest";
+
+  console.log("user data: ", data);
 
   useEffect(() => {
     if (finished) {
       if (hasUser) {
         setAuthStatus("loggedIn");
         if (redirectIfFound && redirectTo) {
-          navigate(redirectTo); // Redirect if user is already authenticated.
+          navigate(redirectTo);
         }
       } else {
         setAuthStatus("loggedOut");
         if (redirectTo && !redirectIfFound) {
-          navigate(redirectTo); // Redirect if user is not authenticated.
+          navigate(redirectTo);
         }
       }
     }
   }, [finished, hasUser, redirectTo, redirectIfFound, navigate]);
 
-  // Return user if authenticated, or "guest" if not.
-  return authStatus === "loggedIn" ? user : "guest";
+  return authStatus === "loggedIn" ? data : null;
 };
 
 export default useIsAuthenticated;

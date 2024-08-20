@@ -83,7 +83,14 @@ def login():
     print(f'User data: {user}')
     login_user(user)
 
-    response = jsonify({"message": "Login successful"})
+    # Prepare the response with user data
+    user_data = {
+        "id": user.id,
+        "username": user.username,
+        # Add other fields as needed
+    }
+
+    response = jsonify({"message": "Login successful", "user": user_data})
     return response, 200
 
 @bp.route('/logout')
