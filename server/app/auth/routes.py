@@ -16,6 +16,8 @@ def get_user():
         "username": current_user.name,
         "email": current_user.email,
     }
+
+    print(user_data)
         
     return jsonify(user_data), 200
 
