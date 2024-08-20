@@ -52,8 +52,7 @@ def register():
             password=generate_password_hash(password, method='pbkdf2:sha256', salt_length=8),
         )
         db.session.add(new_user)
-        db.session.commit()
-        login_user(new_user)
+        db.session.commit()        
     except Exception as e:
         print(f"Error during registration: {e}")
         return jsonify({"message": "Server error during registration"}), 500
