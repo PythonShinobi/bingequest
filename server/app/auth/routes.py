@@ -80,6 +80,7 @@ def login():
     if not user or not check_password_hash(user.password, password):
         return jsonify({"message": "Invalid email or password"}), 401
 
+    print(f'User data: {user}')
     login_user(user)
 
     response = jsonify({"message": "Login successful"})
