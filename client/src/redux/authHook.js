@@ -32,7 +32,15 @@ const fetcher = async (url) => {
     return { user };
   } catch (error) {
     // Handle any errors that occur during the request.
-    console.error('Error fetching user data:', error);
+    console.error('Error fetching user data:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      response: error.response,  // If the error is related to a network request
+      config: error.config,      // Include the request config if available
+      code: error.code,          // If the error has a specific code
+      time: new Date().toISOString(), // Log the time the error occurred
+    });
     throw error; // Re-throw the error for the caller to handle.
   }
 };
