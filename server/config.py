@@ -13,6 +13,7 @@ class Config:
     FRONTEND_ENDPOINT = os.getenv("FRONTEND_ENDPOINT")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'None'
     SESSION_COOKIE_SECURE = True  # Set to True in production
     REMEMBER_COOKIE_HTTPONLY = True
     REMEMBER_COOKIE_SECURE = True  # Set to True in production    
