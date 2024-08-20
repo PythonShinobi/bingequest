@@ -29,7 +29,7 @@ const Login = () => {
 
       if (response.status === 200) {
         setSuccess("Login successful"); // Set success message.  
-        window.location.href = "/"; // Redirect to home page immediately.      
+        // window.location.href = "/"; // Redirect to home page immediately.2      
         setError(""); // Clear any previous errors.                     
         mutate("/api/user"); // Trigger revalidation
       } else {

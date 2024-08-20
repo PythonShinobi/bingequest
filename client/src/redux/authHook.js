@@ -1,47 +1,34 @@
 // client/src/redux/authHooks.js
 
-// `hooks.js` provides a reusable mechanism to fetch user data asynchronously,
-// manage authentication state, and handle redirection based on authentication status 
-// within your React application.
-
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import useSWR from "swr";
 
 import apiClient from "../apiClient";
 
 /**
- * Fetcher function to fetch user data from the given URL and return a user object.
- *
- * This function makes an HTTP GET request using axios, including cookies in the request header.
- * It captures cookies from the browser's cookie storage associated with the requested 
- * domain and appends them to the request headers.
+ * Fetch user data from the given URL using axios.
  *
  * @param {string} url - The URL to fetch user data from.
  * @returns {Promise<Object>} A promise that resolves to an object containing the user data.
  * @throws {Error} Throws an error if the request fails.
  */
-const fetcher = async (url) => {
+const fetchUser = async (url) => {
   try {
     const response = await apiClient.get(url);
-    console.log('Fetched user data: ', response.data)
+    console.log('Fetched user data: ', response.data);
 
-    // Extract the user data from the response and return it.
-    const user = response.data || null;    
-
-    return { user };
+    return { user: response.data || null };
   } catch (error) {
-    // Handle any errors that occur during the request.
     console.error('Error fetching user data:', {
       message: error.message,
       stack: error.stack,
       name: error.name,
-      response: error.response,  // If the error is related to a network request
-      config: error.config,      // Include the request config if available
-      code: error.code,          // If the error has a specific code
-      time: new Date().toISOString(), // Log the time the error occurred
+      response: error.response,
+      config: error.config,
+      code: error.code,
+      time: new Date().toISOString(),
     });
-    throw error; // Re-throw the error for the caller to handle.
+    throw error;
   }
 };
 
@@ -54,28 +41,38 @@ const fetcher = async (url) => {
  */
 const useIsAuthenticated = ({ redirectTo, redirectIfFound } = {}) => {
   const navigate = useNavigate();
-  const { data, error } = useSWR("/api/user", fetcher, { revalidateOnFocus: true });  
-  const user = data?.user;  // Extract user data from the response.  
-  const finished = Boolean(data);  // Check if the data fetching is complete.
-  const hasUser = Boolean(user);  // Check if a user is present.  
+  const [user, setUser] = useState(null);
+  const [finished, setFinished] = useState(false);
+  const [error, setError] = useState(null);
 
-  // useEffect hook to handle redirection based on the user's authentication status.
   useEffect(() => {
-    // If redirectTo is not set or data fetching is not finished, do nothing.
+    const checkAuth = async () => {
+      try {
+        const { user } = await fetchUser("/api/user");
+        console.log(user)
+        setUser(user);
+      } catch (error) {
+        setError(error);
+        setUser(null);
+      } finally {
+        setFinished(true);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  useEffect(() => {
     if (!redirectTo || !finished) return;
 
-    // Redirect logic:
-    // If redirectTo is set, redirect if the user was not found.
     if (
-      (redirectTo && !redirectIfFound && !hasUser) ||
-      // If redirectIfFound is also set, redirect if the user was found.
-      (redirectIfFound && hasUser)
+      (redirectTo && !redirectIfFound && !user) ||
+      (redirectIfFound && user)
     ) {
-      navigate(redirectTo); // Redirect to the specified path.
+      navigate(redirectTo);
     }
-  }, [redirectTo, redirectIfFound, finished, hasUser, navigate]);
+  }, [redirectTo, redirectIfFound, finished, user, navigate]);
 
-  // Return the user data if no error occurred, otherwise return null.
   return error ? null : user;
 };
 
