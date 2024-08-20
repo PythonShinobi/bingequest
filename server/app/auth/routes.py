@@ -8,7 +8,8 @@ from app.models import User
 
 @bp.route("/user", methods=["GET"])
 def get_user():
-    if not current_user.is_authenticated:        
+    if not current_user.is_authenticated:
+        print("User not authenticated")
         return jsonify({"message": "User not authenticated"}), 401
 
     user_data = {
@@ -17,8 +18,8 @@ def get_user():
         "email": current_user.email,
     }
 
-    print(user_data)
-        
+    print("User Data:", user_data)
+
     return jsonify(user_data), 200
 
 # Register new users into the User database

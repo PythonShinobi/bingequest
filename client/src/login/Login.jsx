@@ -25,10 +25,10 @@ const Login = () => {
 
       // Make a POST request using axios with cookies and CSRF token
       const response = await apiClient.post("/api/login", body);
+      console.log("Login Response:", response);
 
       if (response.status === 200) {
-        setSuccess("Login successful"); // Set success message.
-        console.log(response.data);
+        setSuccess("Login successful"); // Set success message.        
         setError(""); // Clear any previous errors.                     
         mutate("/api/user"); // Trigger revalidation
       } else {
