@@ -8,19 +8,23 @@ from app.models import User
 
 @bp.route("/user", methods=["GET"])
 def get_user():
-    if not current_user.is_authenticated:
-        print("User not authenticated")
-        return jsonify({"message": "User not authenticated"}), 401
+    try:
+        if not current_user.is_authenticated:
+            print("User not authenticated")
+            return jsonify({"message": "User not authenticated"}), 401
 
-    user_data = {
-        "id": current_user.id,
-        "username": current_user.name,
-        "email": current_user.email,
-    }
+        user_data = {
+            "id": current_user.id,
+            "username": current_user.name,
+            "email": current_user.email,
+        }
 
-    print("User Data:", user_data)
+        print("User Data:", user_data)
 
-    return jsonify(user_data), 200
+        return jsonify(user_data), 200
+    except Exception as e:
+        print("Error:", str(e))
+        return jsonify({"message": "Internal Server Error"}), 500
 
 # Register new users into the User database
 @bp.route("/register", methods=["POST"])

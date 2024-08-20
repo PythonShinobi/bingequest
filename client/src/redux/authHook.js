@@ -15,7 +15,7 @@ import apiClient from "../apiClient";
 const fetchUser = async (url) => {
   try {
     const response = await apiClient.get(url);
-    console.log('Fetched user data: ', response.data);
+    console.log('Fetched user data: ', response);
 
     return { user: response.data || null };
   } catch (error) {
