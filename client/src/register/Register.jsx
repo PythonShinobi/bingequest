@@ -32,7 +32,7 @@ const Register = () => {
       }
 
       // Make a POST request to the /register route to the backend.
-      const response = await apiClient.post("/api/register", body, {withCredentials: true });
+      const response = await apiClient.post("/api/register", body);
 
       if (response.status === 201) {
         // If registration is successful, set the success message.        

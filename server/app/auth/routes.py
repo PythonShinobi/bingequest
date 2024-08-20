@@ -42,22 +42,26 @@ def register():
     if existing_email:
         return jsonify({"message": "Email already registered"}), 400
 
-    new_user = User(
-        name=username,
-        email=email,
-        password=generate_password_hash(password, method='pbkdf2:sha256', salt_length=8),
-    )
-    db.session.add(new_user)
-    db.session.commit()
-    
-    login_user(new_user)
+    try:
+        new_user = User(
+            name=username,
+            email=email,
+            password=generate_password_hash(password, method='pbkdf2:sha256', salt_length=8),
+        )
+        db.session.add(new_user)
+        db.session.commit()
+        login_user(new_user)
+    except Exception as e:
+        print(f"Error during registration: {e}")
+        return jsonify({"message": "Server error during registration"}), 500
 
     response = make_response(jsonify({"message": "Registration successful✅"}))    
     return response, 201
 
+
 @bp.route("/login", methods=["POST"])
-def login():        
-    data = request.get_json()    
+def login():
+    data = request.get_json()
     if not data:
         return jsonify({"message": "Invalid data"}), 400
 
@@ -67,15 +71,18 @@ def login():
     if not username or not password:
         return jsonify({"message": "Username and password are required"}), 400
 
-    result = db.session.execute(db.select(User).where(User.name == username))
-    user = result.scalar()
+    try:
+        result = db.session.execute(db.select(User).where(User.name == username))
+        user = result.scalar()
+    except Exception as e:
+        return jsonify({"message": "An error occurred while fetching the user", "error": str(e)}), 500
 
     if not user or not check_password_hash(user.password, password):
-        return jsonify({ "message": "Invalid email or password" }), 401
-    
+        return jsonify({"message": "Invalid email or password"}), 401
+
     login_user(user)
 
-    response = jsonify({ "message": "Login successful" })    
+    response = jsonify({"message": "Login successful"})
     return response, 200
 
 @bp.route('/logout')
