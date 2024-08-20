@@ -28,7 +28,8 @@ const Login = () => {
       console.log("Login Response:", response);
 
       if (response.status === 200) {
-        setSuccess("Login successful"); // Set success message.        
+        setSuccess("Login successful"); // Set success message.  
+        window.location.href = "/"; // Redirect to home page immediately.      
         setError(""); // Clear any previous errors.                     
         mutate("/api/user"); // Trigger revalidation
       } else {
