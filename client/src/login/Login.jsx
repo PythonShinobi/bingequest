@@ -28,6 +28,7 @@ const Login = () => {
 
       if (response.status === 200) {
         setSuccess("Login successful"); // Set success message.
+        console.log(response.data);
         setError(""); // Clear any previous errors.                     
         mutate("/api/user"); // Trigger revalidation
       } else {
