@@ -1,4 +1,4 @@
-from flask import jsonify, request, make_response
+from flask import jsonify, request, make_response, session
 from flask_login import login_user, current_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -87,6 +87,7 @@ def login():
         return jsonify({"message": "Invalid email or password"}), 401
     
     login_user(user)
+    session.permanent = True  # Mark the session as permanent
 
     response = jsonify({"message": "Login successful"})
     return response, 200

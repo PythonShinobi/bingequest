@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from datetime import timedelta
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -24,6 +25,7 @@ class Config:
     EMAIL_PASSWORD = os.getenv("GMAIL_PASSWORD")
     API_KEY = os.getenv("API_KEY")
     ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
+    PERMANENT_SESSION_LIFETIME = timedelta(days=7)  # Sessions will persist for 7 days
 
 class TestConfig(Config):
     TESTING = True

@@ -3,129 +3,129 @@
   
   <!-- Home Page -->
   <url>
-    <loc>https://cineverse.developer-path.org/</loc>
+    <loc>https://bingequest.developer-path.org/</loc>
     <priority>1.0</priority>
     <changefreq>daily</changefreq>
   </url>
   
   <!-- Register Page -->
   <url>
-    <loc>https://cineverse.developer-path.org/register</loc>
+    <loc>https://bingequest.developer-path.org/register</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   
   <!-- Login Page -->
   <url>
-    <loc>https://cineverse.developer-path.org/login</loc>
+    <loc>https://bingequest.developer-path.org/login</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   
   <!-- Contact Page -->
   <url>
-    <loc>https://cineverse.developer-path.org/contact</loc>
+    <loc>https://bingequest.developer-path.org/contact</loc>
     <priority>0.7</priority>
     <changefreq>yearly</changefreq>
   </url>
   
   <!-- About Page -->
   <url>
-    <loc>https://cineverse.developer-path.org/about</loc>
+    <loc>https://bingequest.developer-path.org/about</loc>
     <priority>0.7</priority>
     <changefreq>yearly</changefreq>
   </url>
 
   <!-- Movies Pages -->
   <url>
-    <loc>https://cineverse.developer-path.org/movies/popular</loc>
+    <loc>https://bingequest.developer-path.org/movies/popular</loc>
     <priority>0.9</priority>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://cineverse.developer-path.org/movies/trending</loc>
+    <loc>https://bingequest.developer-path.org/movies/trending</loc>
     <priority>0.9</priority>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://cineverse.developer-path.org/movies/top-rated</loc>
+    <loc>https://bingequest.developer-path.org/movies/top-rated</loc>
     <priority>0.9</priority>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://cineverse.developer-path.org/movies/upcoming</loc>
+    <loc>https://bingequest.developer-path.org/movies/upcoming</loc>
     <priority>0.9</priority>
     <changefreq>daily</changefreq>
   </url>
 
   <!-- TV Shows Pages -->
   <url>
-    <loc>https://cineverse.developer-path.org/tv-shows/popular</loc>
+    <loc>https://bingequest.developer-path.org/tv-shows/popular</loc>
     <priority>0.9</priority>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://cineverse.developer-path.org/tv-shows/airing-today</loc>
+    <loc>https://bingequest.developer-path.org/tv-shows/airing-today</loc>
     <priority>0.9</priority>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://cineverse.developer-path.org/tv-shows/top-rated</loc>
+    <loc>https://bingequest.developer-path.org/tv-shows/top-rated</loc>
     <priority>0.9</priority>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://cineverse.developer-path.org/tv-shows/trending</loc>
+    <loc>https://bingequest.developer-path.org/tv-shows/trending</loc>
     <priority>0.9</priority>
     <changefreq>daily</changefreq>
   </url>
 
   <!-- Popular People Page -->
   <url>
-    <loc>https://cineverse.developer-path.org/people/popular</loc>
+    <loc>https://bingequest.developer-path.org/people/popular</loc>
     <priority>0.7</priority>
     <changefreq>weekly</changefreq>
   </url>
 
   <!-- Search Pages -->
   <url>
-    <loc>https://cineverse.developer-path.org/movies/search</loc>
+    <loc>https://bingequest.developer-path.org/movies/search</loc>
     <priority>0.6</priority>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://cineverse.developer-path.org/tv-shows/search</loc>
+    <loc>https://bingequest.developer-path.org/tv-shows/search</loc>
     <priority>0.6</priority>
     <changefreq>weekly</changefreq>
   </url>
 
   <!-- Details Pages -->
   <url>
-    <loc>https://cineverse.developer-path.org/movie/:movieId</loc>
+    <loc>https://bingequest.developer-path.org/movie/:movieId</loc>
     <priority>0.9</priority>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://cineverse.developer-path.org/tv-show/:showId</loc>
+    <loc>https://bingequest.developer-path.org/tv-show/:showId</loc>
     <priority>0.9</priority>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://cineverse.developer-path.org/people/:personId</loc>
+    <loc>https://bingequest.developer-path.org/people/:personId</loc>
     <priority>0.7</priority>
     <changefreq>weekly</changefreq>
   </url>
 
   <!-- Profile Page -->
   <url>
-    <loc>https://cineverse.developer-path.org/profile</loc>
+    <loc>https://bingequest.developer-path.org/profile</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
 
   <!-- 404 Page -->
   <url>
-    <loc>https://cineverse.developer-path.org/404</loc>
+    <loc>https://bingequest.developer-path.org/404</loc>
     <priority>0.5</priority>
     <changefreq>yearly</changefreq>
   </url>
