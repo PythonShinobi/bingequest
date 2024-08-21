@@ -14,8 +14,7 @@ import apiClient from "../apiClient";
  */
 const fetchUser = async (url) => {
   try {
-    const response = await apiClient.get(url);
-    console.log('Fetched user data: ', response);
+    const response = await apiClient.get(url);    
 
     return { user: response.data || null };
   } catch (error) {
@@ -49,7 +48,7 @@ const useIsAuthenticated = ({ redirectTo, redirectIfFound } = {}) => {
     const checkAuth = async () => {
       try {
         const { user } = await fetchUser("/api/user");
-        console.log(user)
+        console.log(user.data)
         setUser(user);
       } catch (error) {
         setError(error);
@@ -73,7 +72,7 @@ const useIsAuthenticated = ({ redirectTo, redirectIfFound } = {}) => {
     }
   }, [redirectTo, redirectIfFound, finished, user, navigate]);
 
-  return error ? null : user;
+  return error ? null : user.id;
 };
 
 export default useIsAuthenticated;
