@@ -2,9 +2,14 @@ from flask import jsonify, request, make_response, session
 from flask_login import login_user, current_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from app import db
+from app import db, login_manager
 from app.auth import bp
 from app.models import User
+
+@login_manager.user_loader  # Reload a user object based on the user ID stored in the session.
+def load_user(user_id):
+    user = db.get_or_404(User, user_id)
+    return user
 
 @bp.route("/user", methods=["GET"])
 def get_user():

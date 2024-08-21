@@ -2,7 +2,7 @@ from flask_login import UserMixin
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Integer, String, ForeignKey
 
-from app import db, login_manager
+from app import db
 
 class User(UserMixin, db.Model):
     __tablename__ = "users"
@@ -46,11 +46,3 @@ class TVShowState(db.Model):
 
     def __repr__(self):
         return f'{self.user_id} - {self.tv_show_id} - {self.title} - {self.image_path} - {self.state}'    
-
-@login_manager.user_loader  # Reload a user object based on the user ID stored in the session.
-def load_user(user_id):
-    """
-    load_user is a function that takes user_id as an argument. This user_id is typically 
-    retrieved from the session data that Flask-Login manages.
-    """
-    return db.get_or_404(User, user_id)
