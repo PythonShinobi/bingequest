@@ -86,9 +86,9 @@ const App = () => {
 };
 
 const PrivateRoute = ({ component: Component }) => {
-  const isAuthenticated = useIsAuthenticated();
+  const user = useIsAuthenticated();
 
-  return isAuthenticated ? <Component /> : <Navigate to="/login" />;
+  return user ? <Component /> : <Navigate to="/login" />;
 };
 
 export default memo(App);
