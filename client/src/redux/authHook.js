@@ -16,7 +16,6 @@ const fetchUser = async (url) => {
   try {
     const response = await apiClient.get(url);
     console.log('Fetched user data: ', response);
-
     return { user: response.data || null };
   } catch (error) {
     console.error('Error fetching user data:', {
@@ -37,23 +36,22 @@ const fetchUser = async (url) => {
  * @param {Object} options - Options object.
  * @param {string} options.redirectTo - Path to redirect if user is not authenticated.
  * @param {boolean} options.redirectIfFound - Redirect if user is already authenticated.
- * @returns {Object|null} The user object if authenticated and data fetch successful, or null if there's an error or user is not authenticated.
+ * @returns {boolean} True if user is authenticated, false otherwise.
  */
 const useIsAuthenticated = ({ redirectTo, redirectIfFound } = {}) => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [finished, setFinished] = useState(false);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const { user } = await fetchUser("/api/user");
-        console.log(user)
-        setUser(user);
+        console.log(user);
+        setIsAuthenticated(!!user);
       } catch (error) {
-        setError(error);
-        setUser(null);
+        console.error('Error fetching user data:', error);
+        setIsAuthenticated(false);
       } finally {
         setFinished(true);
       }
@@ -66,14 +64,14 @@ const useIsAuthenticated = ({ redirectTo, redirectIfFound } = {}) => {
     if (!redirectTo || !finished) return;
 
     if (
-      (redirectTo && !redirectIfFound && !user) ||
-      (redirectIfFound && user)
+      (redirectTo && !redirectIfFound && !isAuthenticated) ||
+      (redirectIfFound && isAuthenticated)
     ) {
       navigate(redirectTo);
     }
-  }, [redirectTo, redirectIfFound, finished, user, navigate]);
+  }, [redirectTo, redirectIfFound, finished, isAuthenticated, navigate]);
 
-  return error ? null : user;
+  return isAuthenticated;
 };
 
 export default useIsAuthenticated;

@@ -34,11 +34,7 @@ const Navbar = () => {
   const [popularPeopleMenuAnchor, setPopularPeopleMenuAnchor] = useState(null);
   const [moreMenuAnchor, setMoreMenuAnchor] = useState(null);
 
-  const user = useIsAuthenticated();
-  // console.log("User1 object:", user?.username);
-  // console.log("User1 object:", user?.email);
-  // console.log("User2 object:", user.username);
-  // console.log("User2 object:", user.email);
+  const isAuthenticated = useIsAuthenticated();  
   const navigate = useNavigate();  
 
   const handleDrawerToggle = () => {
@@ -145,7 +141,7 @@ const Navbar = () => {
           <MenuItem component={NavLink} to="/about">About</MenuItem>           
           <MenuItem component={NavLink} to="/contact">Contact</MenuItem>           
         </Menu>
-        {!user || user === "guest" ? (
+        {!isAuthenticated ? (
           <>
             <ListItem component={NavLink} to="/login">
               <LoginIcon sx={{ mr: 1, color: "black" }} />
@@ -160,7 +156,7 @@ const Navbar = () => {
           <>
             <ListItem onClick={showProfile}>
               <AccountCircleIcon sx={{ mr: 1, color: "black" }} />
-              <ListItemText primaryTypographyProps={{ sx: { color: 'black' } }} primary={`Hi ${user?.username}`} />
+              <ListItemText primaryTypographyProps={{ sx: { color: 'black' } }} primary="Profile" />
             </ListItem>
             <ListItem onClick={handleLogout}>
               <PersonIcon sx={{ mr: 1, color: "black" }} />
@@ -226,42 +222,41 @@ const Navbar = () => {
                 More
               </Button>
               <div className="dropdown-content">
-              <NavLink to="/about">About</NavLink>
-              <NavLink to="/contact">Contact</NavLink>
+                <NavLink to="/about">About</NavLink>
+                <NavLink to="/contact">Contact</NavLink>
               </div>
             </div>
           </Box>
-          <Box sx={{ display: { xs: 'none', md: 'flex' }, justifyContent: 'flex-end' }}>
-            {!user || user === "guest" ? (
-              <>
-                <Button component={NavLink} to="/login" color="inherit" sx={{ m: 1 }} activeClassName="active">
-                  <LoginIcon sx={{ mr: 1 }} />
-                  Login
-                </Button>
-                <Button component={NavLink} to="/register" color="inherit" sx={{ m: 1 }} activeClassName="active">
-                  <HowToRegIcon sx={{ mr: 1 }} />
-                  Register
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button onClick={showProfile} color="inherit" sx={{ m: 1 }} activeClassName="active">
-                  <AccountCircleIcon sx={{ mr: 1 }} />
-                  Hi, {user?.username}
-                </Button>
-                <Button onClick={handleLogout} color="inherit" sx={{ m: 1 }} activeClassName="active">
-                  <PersonIcon sx={{ mr: 1 }} />
-                  Logout
-                </Button>
-              </>
-            )}
-          </Box>
+          {!isAuthenticated ? (
+            <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
+              <Button color="inherit" component={NavLink} to="/login">
+                <LoginIcon sx={{ mr: 1 }} />
+                Login
+              </Button>
+              <Button color="inherit" component={NavLink} to="/register">
+                <HowToRegIcon sx={{ mr: 1 }} />
+                Register
+              </Button>
+            </Box>
+          ) : (
+            <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
+              <Button color="inherit" onClick={showProfile}>
+                <AccountCircleIcon sx={{ mr: 1 }} />
+                Profile
+              </Button>
+              <Button color="inherit" onClick={handleLogout}>
+                <PersonIcon sx={{ mr: 1 }} />
+                Logout
+              </Button>
+            </Box>
+          )}
         </Toolbar>
       </Container>
       <Drawer
         anchor="left"
         open={drawerOpen}
         onClose={handleDrawerToggle}
+        sx={{ display: { xs: 'block', md: 'none' } }}
       >
         {drawerItems}
       </Drawer>
