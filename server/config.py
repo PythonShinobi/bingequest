@@ -16,6 +16,7 @@ class Config:
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'None'
     SESSION_COOKIE_SECURE = True  # Set to True in production
+    SESSION_COOKIE_DOMAIN = ".developer-path.org"  # This ensures the cookie is available on all subdomains
     REMEMBER_COOKIE_HTTPONLY = True
     REMEMBER_COOKIE_SECURE = True  # Set to True in production    
     MAIL_SERVER = os.getenv("MAIL_SERVER", "smtp.gmail.com")
