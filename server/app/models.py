@@ -8,12 +8,12 @@ class User(UserMixin, db.Model):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(String(100))
+    username: Mapped[str] = mapped_column(String(100))
     email: Mapped[str] = mapped_column(String(100), unique=True)
     password: Mapped[str] = mapped_column(String(100))
 
     def __repr__(self):
-        return f'{self.name}'    
+        return f'{self.username}' 
     
 class MovieState(db.Model):
     __tablename__ = 'movie_states'
