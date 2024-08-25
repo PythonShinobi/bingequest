@@ -55,7 +55,7 @@ def register():
         print(f"Error during registration: {e}")
         return jsonify({"message": "Server error during registration"}), 500
 
-    response = make_response(jsonify({"message": "Registration successful✅", "username": new_user.username}))
+    response = make_response(jsonify({"message": "Registration successful✅", "id": new_user.id, "username": new_user.username}))
     return response, 201
 
 # Logs in a user
@@ -85,7 +85,7 @@ def login():
     
     login_user(user, remember=True)
 
-    response = jsonify({"message": "Login successful", "username": user.username})
+    response = jsonify({"message": "Login successful", "id": user.id, "username": user.username})
     return response, 200
 
 @bp.route('/logout')
