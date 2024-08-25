@@ -77,7 +77,7 @@ export const AuthProvider = ({ children }) => {
   // Log out a user
   const logout = async () => {
     try {
-      const response = await apiClient.get('/api/logout');
+      const response = await apiClient.post('/api/logout');
       console.log('Logout response: ', response);
       if (response.status === 200) {                
         setErr(""); // Clear any previous errors        
