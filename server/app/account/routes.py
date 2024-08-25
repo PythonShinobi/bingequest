@@ -2,9 +2,14 @@ from flask import jsonify, abort
 from flask_login import current_user
 from sqlalchemy.exc import SQLAlchemyError
 
-from app import db
+from app import db, login_manager
 from app.account import bp
 from app.models import User, MovieState, TVShowState
+
+@login_manager.user_loader  # Reload a user object based on the user ID stored in the session.
+def load_user(user_id):
+    user = db.get_or_404(User, user_id)
+    return user
 
 @bp.route('/delete-account', methods=['DELETE'])
 def delete_account():
@@ -12,7 +17,6 @@ def delete_account():
         abort(401, description="Unauthorized access")
 
     user_id = current_user.id
-
     try:
         user = User.query.get(user_id)
         if user is None:

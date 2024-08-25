@@ -136,7 +136,7 @@ const ProfilePage = () => {
         console.error('Error fetching watch lists:', error);
       }
     }    
-  }, [user, cacheObject]);
+  }, [cacheObject]);
 
   useEffect(() => {
     fetchWatchLists();    
@@ -180,11 +180,19 @@ const ProfilePage = () => {
   const handleDeleteAccount = async () => {
     if (user) {
       try {
-        await apiClient.delete('/api/delete-account');
-        // Perform any necessary cleanup or redirection after account deletion
-        navigate('/login'); // Redirect to login page or any other desired page
+        const response = await apiClient.delete('/api/delete-account');
+        
+        if (response.status === 200) {
+          // Perform any necessary cleanup or redirection after account deletion
+          localStorage.removeItem('user'); // Remove cached user data
+          navigate('/'); // Redirect to login page or any other desired page
+        } else {
+          console.error('Error deleting account:', `Unexpected status code: ${response.status}`);
+          alert('An error occurred while deleting the account. Please try again.');
+        }
       } catch (error) {
         console.error('Error deleting account:', error.response ? error.response.data : error.message);
+        alert('An error occurred while deleting the account. Please try again.');
       }
     }
   };
