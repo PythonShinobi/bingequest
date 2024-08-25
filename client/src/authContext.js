@@ -80,6 +80,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await apiClient.post('/api/logout');      
       if (response.status === 200) {
+        localStorage.removeItem('user'); // Remove cached user data
         checkSession();  // Immediately check session after logout
         setErr(""); // Clear any previous errors        
         return response.status;   
