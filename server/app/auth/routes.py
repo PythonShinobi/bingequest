@@ -1,5 +1,5 @@
-from flask import jsonify, request, make_response, session
-from flask_login import login_user, current_user, logout_user
+from flask import jsonify, request, make_response
+from flask_login import login_user, current_user, logout_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from app import db, login_manager
@@ -11,29 +11,16 @@ def load_user(user_id):
     user = db.get_or_404(User, user_id)
     return user
 
-@bp.route("/user", methods=["GET"])
-def get_user():
-    try:
-        if not current_user.is_authenticated:
-            print("User not authenticated")
-            return jsonify({"message": "User not authenticated"}), 401
-
-        user_data = {
-            "id": current_user.id,
-            "username": current_user.name,
-            "email": current_user.email,
-        }
-
-        print("User Data:", user_data)
-
-        return jsonify(user_data), 200
-    except Exception as e:
-        print("Error:", str(e))
-        return jsonify({"message": "Internal Server Error"}), 500
+@bp.route('/check-session', methods=['GET'])
+def check_session():
+    if current_user.is_authenticated:
+        return jsonify({"message": "Session is active", "username": current_user.username}), 200
+    else:
+        return jsonify({"message": "No active session"}), 401
 
 # Register new users into the User database
-@bp.route("/register", methods=["POST"])
-def register():    
+@bp.route('/register', methods=['POST'])
+def register():
     data = request.get_json()
     if not data:
         return jsonify({"message": "Invalid data"}), 400
@@ -43,7 +30,7 @@ def register():
     password = data.get("password")
 
     # Check if the username is already present in the database.
-    username_check = db.session.execute(db.select(User).where(User.name == username))
+    username_check = db.session.execute(db.select(User).where(User.username == username))
     existing_username = username_check.scalar()
     if existing_username:
         return jsonify({"message": "Username already taken"}), 400
@@ -55,51 +42,55 @@ def register():
         return jsonify({"message": "Email already registered"}), 400
 
     try:
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256', salt_length=8)
         new_user = User(
-            name=username,
+            username=username,
             email=email,
-            password=generate_password_hash(password, method='pbkdf2:sha256', salt_length=8),
+            password=hashed_password
         )
         db.session.add(new_user)
-        db.session.commit()        
+        db.session.commit()
+        login_user(new_user, remember=True)
     except Exception as e:
         print(f"Error during registration: {e}")
         return jsonify({"message": "Server error during registration"}), 500
 
-    response = make_response(jsonify({"message": "Registration successful✅"}))    
+    response = make_response(jsonify({"message": "Registration successful✅", "username": new_user.username}))
     return response, 201
 
-
-@bp.route("/login", methods=["POST"])
+# Logs in a user
+@bp.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
     if not data:
         return jsonify({"message": "Invalid data"}), 400
 
     username = data.get('username')
-    password = data.get('password')
+    password = data.get('password')   
 
     if not username or not password:
         return jsonify({"message": "Username and password are required"}), 400
 
     try:
-        result = db.session.execute(db.select(User).where(User.name == username))
+        result = db.session.execute(db.select(User).where(User.username == username))
         user = result.scalar()
     except Exception as e:
         return jsonify({"message": "An error occurred while fetching the user", "error": str(e)}), 500
-
-    if not user or not check_password_hash(user.password, password):
-        return jsonify({"message": "Invalid email or password"}), 401
     
-    login_user(user)
-    session.permanent = True  # Mark the session as permanent
+    if not user:
+        return jsonify({"message": "User does not exist"}), 401
 
-    response = jsonify({"message": "Login successful"})
+    if not check_password_hash(user.password, password):        
+        return jsonify({"message": "Invalid password"}), 401
+    
+    login_user(user, remember=True)
+
+    response = jsonify({"message": "Login successful", "username": user.username})
     return response, 200
 
 @bp.route('/logout')
+@login_required
 def logout():
-    logout_user()  # Handle Flask-Login user logout
-
-    response = make_response(jsonify({'message': 'Logged out successfully'}), 200)           
-    return response
+    logout_user()    
+    response = make_response(jsonify({'message': 'Logged out successfully'}))
+    return response, 200
