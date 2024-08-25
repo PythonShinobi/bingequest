@@ -25,11 +25,10 @@ const Login = () => {
       const status = await login(username, password);      
       if (status === 200) {
         setSuccess("Login successful"); // Set success message
-        setError(""); // Clear any previous errors
         setTimeout(() => { navigate("/"); }, 1000); // Redirect after 1 second
+        setError(""); // Clear any previous errors
       } else {
         setError(err);
-        setError(""); // Clear any previous errors
       }
     } catch (error) {
       console.error(`An unexpected error occurred: ${error.message}`);

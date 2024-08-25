@@ -35,7 +35,6 @@ const Register = () => {
         setTimeout(() => { navigate("/"); }, 1000); // Redirect after 1 second
       } else {
         setError(err); // Set the error message immediately
-        setError(""); // Clear any previous errors
       }
     } catch (error) {
       console.error("An unexpected error occurred:", error);
