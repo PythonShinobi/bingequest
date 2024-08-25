@@ -29,10 +29,12 @@ const Login = () => {
         setError(""); // Clear any previous errors
       } else {
         setError(err);
+        alert('An error occurred while trying to log in. Please try again.');
       }
     } catch (error) {
       console.error(`An unexpected error occurred: ${error.message}`);
       setError(err || error.message);
+      alert('An error occurred while trying to log in. Please try again.');
     }
   };
 

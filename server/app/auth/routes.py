@@ -1,4 +1,4 @@
-from flask import jsonify, request, make_response
+from flask import jsonify, request, make_response, session
 from flask_login import login_user, current_user, logout_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -91,6 +91,8 @@ def login():
 @bp.route('/logout', methods=['POST'])
 @login_required
 def logout():
-    logout_user()    
+    logout_user()
+    session.clear()  # Explicitly clear the session
     response = make_response(jsonify({'message': 'Logged out successfully'}))
+    response.set_cookie('session', '', expires=0)  # Clear the session cookie
     return response, 200
