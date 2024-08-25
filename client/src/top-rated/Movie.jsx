@@ -19,10 +19,11 @@ import {
   MenuItem
 } from "@mui/material";
 
+import { useAuth } from "../authContext.js";
+
 import "./Movie.css";
 import Navbar from "../navbar/Navbar";
 import FilterComponent from "../components/Filters";
-import useIsAuthenticated from "../redux/authHook";
 import apiClient from "../apiClient";
 
 // Define a function to scale vote average to a star rating
@@ -34,6 +35,7 @@ const getStarRating = (voteAverage) => {
 const movieCache = {};
 
 const TopRatedMovies = () => {
+  const [authenticated, setAuthenticated] = useState(false);
   const [movies, setMovies] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -46,10 +48,20 @@ const TopRatedMovies = () => {
   const [currentTitle, setCurrentTitle] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
 
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens
-  const isAuthenticated = useIsAuthenticated();
+  const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens  
+
+  // Check local storage for user session
+  useEffect(() => {
+    const sessionData = localStorage.getItem('user');
+    if (sessionData) {      
+      setAuthenticated(true);      
+    } else {
+      setAuthenticated(false);
+    }
+  }, []);
 
   // Fetch top rated movies with caching
   const fetchTopRatedMovies = useCallback(async (page, filters) => {
@@ -88,7 +100,7 @@ const TopRatedMovies = () => {
   // Handle movie state change
   const handleMovieStateChange = useCallback((event, movieId, title, image) => {
     event.stopPropagation(); // Prevent navigation on state change click
-    if (isAuthenticated) {
+    if (authenticated) {
       setAnchorEl(event.currentTarget);
       setCurrentMovieId(movieId);
       setCurrentTitle(title);
@@ -96,17 +108,17 @@ const TopRatedMovies = () => {
     } else {
       navigate('/login'); // Redirect to login if not authenticated
     }
-  }, [isAuthenticated, navigate]);
+  }, [authenticated, navigate]);
 
   // Handle menu close and update movie state
   const handleMenuClose = (state) => {
-    if (isAuthenticated && currentMovieId !== null) {
+    if (authenticated && currentMovieId !== null) {
       setMovieStates(prevStates => ({
         ...prevStates,
         [currentMovieId]: state
       }));
 
-      const user_id = isAuthenticated.id;
+      const user_id = user.id;
 
       // Make the API call to update the state in the backend
       apiClient.post('/api/set_movie_state', {
@@ -167,8 +179,8 @@ const TopRatedMovies = () => {
     fetchTopRatedMovies(page, filters);
 
     // Fetch movie states if authenticated
-    if (isAuthenticated) {
-      const user_id = isAuthenticated.id;
+    if (authenticated) {
+      const user_id = user.id;
       apiClient.get(`/api/get_movie_states/${user_id}`)
         .then(response => {
           const states = response.data.reduce((acc, item) => {
@@ -183,7 +195,7 @@ const TopRatedMovies = () => {
     }
 
     window.scrollTo(0, 0); // Scroll to the top of the page on page change
-  }, [location.search, fetchTopRatedMovies, isAuthenticated]);
+  }, [location.search, fetchTopRatedMovies, authenticated]);
 
   const memoizedMovies = useMemo(
     () =>

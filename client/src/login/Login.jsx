@@ -1,53 +1,51 @@
 // client/src/login/Login.jsx
 import React, { useState } from "react";
-import { mutate } from "swr"; // Import mutate
+import { useNavigate } from "react-router-dom";
 
 import "./Login.css";
-import useIsAuthenticated from "../redux/authHook.js";
+import { useAuth } from "../authContext"; // Import the useAuth hook
 import Navbar from "../navbar/Navbar";
 import Form from "../components/Form";
-import apiClient from "../apiClient.js";
 
 const Login = () => {
-  useIsAuthenticated({ redirectTo: "/", redirectIfFound: true });
+  const { login, err } = useAuth(); // Get the login and err function from AuthContext
+  const [success, setSuccess] = useState(""); // State variable for success message
+  const [error, setError] = useState("");
 
-  const [success, setSuccess] = useState(""); // State variable for success message.
-  const [error, setError] = useState("");  
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent default form submission behavior.
 
     try {
-      const body = {
-        username: e.target.username.value,
-        password: e.target.password.value,
-      };
+      const username = e.target.username.value;
+      const password = e.target.password.value;
 
-      // Make a POST request using axios with cookies and CSRF token
-      const response = await apiClient.post("/api/login", body);
-      console.log("Login Response:", response);
-      console.log("Login Response:", response.data);
-
-      if (response.status === 200) {
-        setSuccess("Login successful"); // Set success message.  
-        // window.location.href = "/"; // Redirect to home page immediately.2      
-        setError(""); // Clear any previous errors.                     
-        mutate("/api/user"); // Trigger revalidation
+      // Use the login function from AuthContext to log in
+      const status = await login(username, password);      
+      if (status === 200) {
+        setSuccess("Login successful"); // Set success message
+        setError(""); // Clear any previous errors
+        setTimeout(() => { navigate("/"); }, 1000); // Redirect after 1 second
       } else {
-        // If login fails, throw an error with the response data.
-        throw new Error(response.data.message);
+        setError(err);
+        setError(""); // Clear any previous errors
       }
     } catch (error) {
       console.error(`An unexpected error occurred: ${error.message}`);
-      setError(error.response?.data?.message || error.message); // Set error message state with the error message
+      setError(err || error.message);
     }
   };
 
   return (
     <div className="login-container">
-      <Navbar />
-      {/* Render the Form component for login */}
-      <Form isLogin={true} errorMessage={error} successMessage={success} onSubmit={handleSubmit} />
+      <Navbar />      
+      <Form 
+        isLogin={true} 
+        errorMessage={error} 
+        successMessage={success} 
+        onSubmit={handleSubmit} 
+      />
     </div>
   );
 };

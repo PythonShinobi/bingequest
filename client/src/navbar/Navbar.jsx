@@ -1,6 +1,5 @@
 // client/src/navbar/Navbar.jsx
 import React, { useState } from "react";
-import axios from 'axios';
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   AppBar,
@@ -25,17 +24,31 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
 import "./Navbar.css";
-import useIsAuthenticated from "../redux/authHook.js";
+import { useAuth } from "../authContext.js";
 
 const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [username, setUsername] = useState('');
   const [moviesMenuAnchor, setMoviesMenuAnchor] = useState(null);
   const [tvShowsMenuAnchor, setTvShowsMenuAnchor] = useState(null);
   const [popularPeopleMenuAnchor, setPopularPeopleMenuAnchor] = useState(null);
   const [moreMenuAnchor, setMoreMenuAnchor] = useState(null);
-
-  const isAuthenticated = useIsAuthenticated();  
+  
+  const { logout } = useAuth();
   const navigate = useNavigate();  
+
+  // Check local storage for user session
+  useEffect(() => {
+    const sessionData = localStorage.getItem('user');
+    if (sessionData) {
+      const parsedData = JSON.parse(sessionData);
+      setAuthenticated(true);
+      setUsername(parsedData.username || '');
+    } else {
+      setAuthenticated(false);
+    }
+  }, []);
 
   const handleDrawerToggle = () => {
     setDrawerOpen(!drawerOpen);
@@ -43,10 +56,20 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.get("/api/logout");
-      window.location.href = "/"; // Redirect to home page immediately.
+      const status = await logout();      
+      if (status === 200) {
+        localStorage.removeItem('user'); // Remove cached user data
+        setAuthenticated(false); // Update state to reflect user is logged out
+        setUsername(''); // Clear the username state
+        navigate('/'); // Redirect the user to the home page
+      } else {
+        // Handle any unexpected status codes (this should be covered in the logout function)
+        console.error('Failed to log out.');
+      }
     } catch (error) {
+      // Error handling if the logout fails
       console.error('Error logging out:', error);
+      // Display an error message or take appropriate action
     }
   };
 
@@ -141,7 +164,7 @@ const Navbar = () => {
           <MenuItem component={NavLink} to="/about">About</MenuItem>           
           <MenuItem component={NavLink} to="/contact">Contact</MenuItem>           
         </Menu>
-        {!isAuthenticated ? (
+        {!authenticated ? (
           <>
             <ListItem component={NavLink} to="/login">
               <LoginIcon sx={{ mr: 1, color: "black" }} />
@@ -154,11 +177,11 @@ const Navbar = () => {
           </>
         ) : (
           <>
-            <ListItem onClick={showProfile}>
+            <ListItem onClick={() => { showProfile(); handleDrawerToggle(); }}>
               <AccountCircleIcon sx={{ mr: 1, color: "black" }} />
-              <ListItemText primaryTypographyProps={{ sx: { color: 'black' } }} primary="Profile" />
+              <ListItemText primaryTypographyProps={{ sx: { color: 'black' } }} primary={`${username}`} />
             </ListItem>
-            <ListItem onClick={handleLogout}>
+            <ListItem onClick={() => { handleLogout(); handleDrawerToggle(); }}>
               <PersonIcon sx={{ mr: 1, color: "black" }} />
               <ListItemText primaryTypographyProps={{ sx: { color: 'black' } }} primary="Logout" />
             </ListItem>
@@ -227,7 +250,7 @@ const Navbar = () => {
               </div>
             </div>
           </Box>
-          {!isAuthenticated ? (
+          {!authenticated ? (
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
               <Button color="inherit" component={NavLink} to="/login">
                 <LoginIcon sx={{ mr: 1 }} />
@@ -242,7 +265,7 @@ const Navbar = () => {
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
               <Button color="inherit" onClick={showProfile}>
                 <AccountCircleIcon sx={{ mr: 1 }} />
-                Profile
+                {username}
               </Button>
               <Button color="inherit" onClick={handleLogout}>
                 <PersonIcon sx={{ mr: 1 }} />

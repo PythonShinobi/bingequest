@@ -25,9 +25,10 @@ import {
   MenuItem,
 } from "@mui/material";
 
+import { useAuth } from "../authContext.js";
+
 import "./SearchMovie.css";
 import Navbar from "../navbar/Navbar";
-import useIsAuthenticated from "../redux/authHook";
 import apiClient from "../apiClient";
 
 // Define a function to scale vote average to a star rating
@@ -38,6 +39,7 @@ const getStarRating = (voteAverage) => {
 const searchCache = {};
 
 const SearchMovie = () => {
+  const [authenticated, setAuthenticated] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -51,9 +53,19 @@ const SearchMovie = () => {
   const [currentTitle, setCurrentTitle] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
 
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const isAuthenticated = useIsAuthenticated();
+
+  // Check local storage for user session
+  useEffect(() => {
+    const sessionData = localStorage.getItem('user');
+    if (sessionData) {      
+      setAuthenticated(true);      
+    } else {
+      setAuthenticated(false);
+    }
+  }, []);
 
   const fetchSearchResults = useCallback(async (query, page) => {
     const cacheKey = `${query}-${page}`;
@@ -84,8 +96,8 @@ const SearchMovie = () => {
   }, []);
 
   const fetchMovieStates = useCallback(async () => {
-    if (isAuthenticated) {
-      const user_id = isAuthenticated.id;
+    if (authenticated) {
+      const user_id = user.id;
       try {
         const response = await apiClient.get(`/api/get_movie_states/${user_id}`);
         const states = response.data.reduce((acc, item) => {
@@ -97,7 +109,7 @@ const SearchMovie = () => {
         console.error("Error fetching movie states:", error);
       }
     }
-  }, [isAuthenticated]);
+  }, [authenticated]);
 
   const handleSearch = async (e, page = 1) => {
     if (e) e.preventDefault();
@@ -120,7 +132,7 @@ const SearchMovie = () => {
 
   const handleMovieStateChange = useCallback((event, movieId, title, image) => {
     event.stopPropagation();
-    if (isAuthenticated) {
+    if (authenticated) {
       setAnchorEl(event.currentTarget);
       setCurrentMovieId(movieId);
       setCurrentTitle(title);
@@ -128,16 +140,16 @@ const SearchMovie = () => {
     } else {
       navigate('/login');
     }
-  }, [isAuthenticated, navigate]);
+  }, [authenticated, navigate]);
 
   const handleMenuClose = (state) => {
-    if (isAuthenticated && currentMovieId !== null) {
+    if (authenticated && currentMovieId !== null) {
       setMovieStates(prevStates => ({
         ...prevStates,
         [currentMovieId]: state
       }));
 
-      const user_id = isAuthenticated.id;
+      const user_id = user.id;
       apiClient.post('/api/set_movie_state', {
         user_id: user_id,
         movie_id: currentMovieId,
@@ -177,10 +189,10 @@ const SearchMovie = () => {
       setLoading(false);
     }
 
-    if (isAuthenticated) {
+    if (authenticated) {
       fetchMovieStates();
     }
-  }, [location.search, fetchSearchResults, fetchMovieStates, isAuthenticated]);
+  }, [location.search, fetchSearchResults, fetchMovieStates, authenticated]);
 
   const memoizedResults = useMemo(() => results, [results]);
 

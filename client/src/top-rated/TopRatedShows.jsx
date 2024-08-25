@@ -19,10 +19,11 @@ import {
   MenuItem
 } from "@mui/material";
 
+import { useAuth } from "../authContext.js";
+
 import "./TopRatedShows.css";
 import Navbar from "../navbar/Navbar";
 import SeriesFilterComponent from "../components/SeriesFilters";
-import useIsAuthenticated from "../redux/authHook";
 import apiClient from "../apiClient";
 
 // Define a function to scale vote average to a star rating
@@ -34,6 +35,7 @@ const getStarRating = (voteAverage) => {
 const showCache = {};
 
 const TopRatedShows = () => {
+  const [authenticated, setAuthenticated] = useState(false);
   const [shows, setShows] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -46,10 +48,20 @@ const TopRatedShows = () => {
   const [currentTitle, setCurrentTitle] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
 
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens
-  const isAuthenticated = useIsAuthenticated();
+
+  // Check local storage for user session
+  useEffect(() => {
+    const sessionData = localStorage.getItem('user');
+    if (sessionData) {      
+      setAuthenticated(true);      
+    } else {
+      setAuthenticated(false);
+    }
+  }, []);
 
   // Fetch top rated shows with caching
   const fetchTopRatedShows = useCallback(async (page, filters) => {
@@ -88,7 +100,7 @@ const TopRatedShows = () => {
   // Handle show state change
   const handleShowStateChange = useCallback((event, showId, title, image) => {
     event.stopPropagation(); // Prevent navigation on state change click
-    if (isAuthenticated) {
+    if (authenticated) {
       setAnchorEl(event.currentTarget);
       setCurrentShowId(showId);
       setCurrentTitle(title);
@@ -96,17 +108,17 @@ const TopRatedShows = () => {
     } else {
       navigate('/login'); // Redirect to login if not authenticated
     }
-  }, [isAuthenticated, navigate]);
+  }, [authenticated, navigate]);
 
   // Handle menu close and update show state
   const handleMenuClose = (state) => {
-    if (isAuthenticated && currentShowId !== null) {
+    if (authenticated && currentShowId !== null) {
       setShowStates(prevStates => ({
         ...prevStates,
         [currentShowId]: state
       }));
 
-      const user_id = isAuthenticated.id;
+      const user_id = user.id;
 
       // Make the API call to update the state in the backend
       apiClient.post('/api/set_tv_show_state', {
@@ -167,8 +179,8 @@ const TopRatedShows = () => {
     fetchTopRatedShows(page, filters);
 
     // Fetch show states if authenticated
-    if (isAuthenticated) {
-      const user_id = isAuthenticated.id;
+    if (authenticated) {
+      const user_id = user.id;
       apiClient.get(`/api/get_tv_show_states/${user_id}`)
         .then(response => {
           const states = response.data.reduce((acc, item) => {
@@ -183,7 +195,7 @@ const TopRatedShows = () => {
     }
 
     window.scrollTo(0, 0); // Scroll to the top of the page on page change
-  }, [location.search, fetchTopRatedShows, isAuthenticated]);
+  }, [location.search, fetchTopRatedShows, authenticated]);
 
   const memoizedShows = useMemo(
     () =>

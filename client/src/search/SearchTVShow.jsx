@@ -25,9 +25,10 @@ import {
   MenuItem,
 } from "@mui/material";
 
+import { useAuth } from "../authContext.js";
+
 import "./SearchTVShow.css";
 import Navbar from "../navbar/Navbar";
-import useIsAuthenticated from "../redux/authHook";
 import apiClient from "../apiClient";
 
 // Define a function to scale vote average to a star rating
@@ -38,6 +39,7 @@ const getStarRating = (voteAverage) => {
 const searchCache = {};
 
 const SearchTVShow = () => {
+  const [authenticated, setAuthenticated] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -51,9 +53,9 @@ const SearchTVShow = () => {
   const [currentTitle, setCurrentTitle] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
 
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const isAuthenticated = useIsAuthenticated();
 
   const fetchSearchResults = useCallback(async (query, page) => {
     const cacheKey = `${query}-${page}`;
@@ -84,8 +86,8 @@ const SearchTVShow = () => {
   }, []);
 
   const fetchTvShowStates = useCallback(async () => {
-    if (isAuthenticated) {
-      const user_id = isAuthenticated.id;
+    if (authenticated) {
+      const user_id = user.id;
       try {
         const response = await apiClient.get(`/api/get_tv_show_states/${user_id}`);
         const states = response.data.reduce((acc, item) => {
@@ -97,7 +99,7 @@ const SearchTVShow = () => {
         console.error("Error fetching TV show states:", error);
       }
     }
-  }, [isAuthenticated]);
+  }, [authenticated]);
 
   const handleSearch = async (e, page = 1) => {
     if (e) e.preventDefault();
@@ -119,7 +121,7 @@ const SearchTVShow = () => {
 
   const handleTvShowStateChange = useCallback((event, tvShowId, title, image) => {
     event.stopPropagation();
-    if (isAuthenticated) {
+    if (authenticated) {
       setAnchorEl(event.currentTarget);
       setCurrentTvShowId(tvShowId);
       setCurrentTitle(title);
@@ -127,16 +129,16 @@ const SearchTVShow = () => {
     } else {
       navigate('/login');
     }
-  }, [isAuthenticated, navigate]);
+  }, [authenticated, navigate]);
 
   const handleMenuClose = (state) => {
-    if (isAuthenticated && currentTvShowId !== null) {
+    if (authenticated && currentTvShowId !== null) {
       setTvShowStates(prevStates => ({
         ...prevStates,
         [currentTvShowId]: state
       }));
 
-      const user_id = isAuthenticated.id;
+      const user_id = user.id;
       apiClient.post('/api/set_tv_show_state', {
         user_id: user_id,
         tv_show_id: currentTvShowId,
@@ -176,10 +178,10 @@ const SearchTVShow = () => {
       setLoading(false);
     }
 
-    if (isAuthenticated) {
+    if (authenticated) {
       fetchTvShowStates();
     }
-  }, [location.search, fetchSearchResults, fetchTvShowStates, isAuthenticated]);
+  }, [location.search, fetchSearchResults, fetchTvShowStates, authenticated]);
 
   const memoizedResults = useMemo(() => results, [results]);
 

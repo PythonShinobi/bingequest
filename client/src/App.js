@@ -1,8 +1,11 @@
 // client/src/App.js
 import React, { memo } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
+import { AuthProvider } from './authContext';
 
 import Home from "./home/Home"
+import Footer from './footer/Footer';
 import Register from './register/Register';
 import Login from './login/Login';
 import PopularMovies from './popular/Movie';
@@ -24,8 +27,7 @@ import ContactPage from './contact/Contact';
 import About from './about/About';
 import CelebrityDetails from './details/PersonDetails';
 
-import useIsAuthenticated from './redux/authHook';
-import Footer from './footer/Footer';
+import PrivateRoute from './PrivateRoute';
 
 // Memoized components
 const MemoizedComponents = {
@@ -55,40 +57,39 @@ const MemoizedComponents = {
 const App = () => {
   return (
     <BrowserRouter>
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        <Routes>
-          <Route path='/' element={<MemoizedComponents.Home />} />
-          <Route path='/register' element={<MemoizedComponents.Register />} />
-          <Route path='/login' element={<MemoizedComponents.Login />} />
-          <Route path='/contact' element={<MemoizedComponents.ContactPage />} />
-          <Route path='/about' element={<MemoizedComponents.About />} />
-          <Route path='/movies/popular' element={<MemoizedComponents.PopularMovies />} />
-          <Route path='/movies/trending' element={<MemoizedComponents.TrendingMovies />} />
-          <Route path='/movies/top-rated' element={<MemoizedComponents.TopRatedMovies />} />
-          <Route path='/movies/upcoming' element={<MemoizedComponents.UpcomingMovies />} />
-          <Route path='/tv-shows/popular' element={<MemoizedComponents.PopularTVShows />} />
-          <Route path='/tv-shows/airing-today' element={<MemoizedComponents.AiringTVShows />} />
-          <Route path='/tv-shows/top-rated' element={<MemoizedComponents.TopRatedShows />} />
-          <Route path='/tv-shows/trending' element={<MemoizedComponents.TrendingTVShows />} />
-          <Route path='/people/popular' element={<MemoizedComponents.PopularPeople />} />
-          <Route path='/movies/search' element={<MemoizedComponents.SearchMovie />} />
-          <Route path='/tv-shows/search' element={<MemoizedComponents.SearchTVShow />} />
-          <Route path="/movie/:movieId" element={<MemoizedComponents.MovieDetails />} />
-          <Route path="/tv-show/:showId" element={<MemoizedComponents.TvShowDetails />} />
-          <Route path="/people/:personId" element={<MemoizedComponents.CelebrityDetails />} />
-          <Route path="/profile" element={<PrivateRoute component={MemoizedComponents.ProfilePage} />} />
-          <Route path='*' element={<MemoizedComponents.PageNotFound />} />
-        </Routes>
-        <Footer />
-      </div>
+      <AuthProvider>        
+        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+          <Routes>
+            <Route path='/' element={<MemoizedComponents.Home />} />
+            <Route path='/register' element={<MemoizedComponents.Register />} />
+            <Route path='/login' element={<MemoizedComponents.Login />} />
+            <Route path='/contact' element={<MemoizedComponents.ContactPage />} />
+            <Route path='/about' element={<MemoizedComponents.About />} />
+            <Route path='/movies/popular' element={<MemoizedComponents.PopularMovies />} />
+            <Route path='/movies/trending' element={<MemoizedComponents.TrendingMovies />} />
+            <Route path='/movies/top-rated' element={<MemoizedComponents.TopRatedMovies />} />
+            <Route path='/movies/upcoming' element={<MemoizedComponents.UpcomingMovies />} />
+            <Route path='/tv-shows/popular' element={<MemoizedComponents.PopularTVShows />} />
+            <Route path='/tv-shows/airing-today' element={<MemoizedComponents.AiringTVShows />} />
+            <Route path='/tv-shows/top-rated' element={<MemoizedComponents.TopRatedShows />} />
+            <Route path='/tv-shows/trending' element={<MemoizedComponents.TrendingTVShows />} />
+            <Route path='/people/popular' element={<MemoizedComponents.PopularPeople />} />
+            <Route path='/movies/search' element={<MemoizedComponents.SearchMovie />} />
+            <Route path='/tv-shows/search' element={<MemoizedComponents.SearchTVShow />} />
+            <Route path="/movie/:movieId" element={<MemoizedComponents.MovieDetails />} />
+            <Route path="/tv-show/:showId" element={<MemoizedComponents.TvShowDetails />} />
+            <Route path="/people/:personId" element={<MemoizedComponents.CelebrityDetails />} />
+            <Route
+              path='/profile'
+              element={<PrivateRoute element={MemoizedComponents.ProfilePage} />}
+            />
+            <Route path='*' element={<MemoizedComponents.PageNotFound />} />
+          </Routes>
+          <Footer />
+        </div>
+      </AuthProvider>
     </BrowserRouter>
   );
-};
-
-const PrivateRoute = ({ component: Component }) => {
-  const user = useIsAuthenticated();
-
-  return user ? <Component /> : <Navigate to="/login" />;
 };
 
 export default memo(App);

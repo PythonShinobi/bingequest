@@ -19,10 +19,11 @@ import {
   MenuItem,  
 } from "@mui/material";
 
+import { useAuth } from "../authContext.js";
+
 import "./Shows.css";
 import Navbar from "../navbar/Navbar";
 import SeriesFilterComponent from "../components/SeriesFilters";
-import useIsAuthenticated from "../redux/authHook";
 import apiClient from "../apiClient";
 
 // Define a function to scale vote average to a star rating
@@ -34,6 +35,7 @@ const getStarRating = (voteAverage) => {
 const showCache = {};
 
 const PopularTVShows = () => {
+  const [authenticated, setAuthenticated] = useState(false);
   const [shows, setShows] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -46,10 +48,20 @@ const PopularTVShows = () => {
   const [currentTitle, setCurrentTitle] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
 
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens
-  const isAuthenticated = useIsAuthenticated();
+  const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens  
+
+  // Check local storage for user session
+  useEffect(() => {
+    const sessionData = localStorage.getItem('user');
+    if (sessionData) {      
+      setAuthenticated(true);      
+    } else {
+      setAuthenticated(false);
+    }
+  }, []);
 
   const fetchPopularTVShows = useCallback(async (page, filters) => {
     const cacheKey = `${page}-${JSON.stringify(filters)}`;
@@ -121,8 +133,8 @@ const PopularTVShows = () => {
     fetchPopularTVShows(page, filters);
 
     // Fetch show states if authenticated
-    if (isAuthenticated) {
-      const user_id = isAuthenticated.id;
+    if (authenticated) {
+      const user_id = user.id;
       apiClient.get(`/api/get_tv_show_states/${user_id}`)
         .then(response => {
           const states = response.data.reduce((acc, item) => {
@@ -137,12 +149,12 @@ const PopularTVShows = () => {
     }
 
     window.scrollTo(0, 0);
-  }, [location.search, fetchPopularTVShows, isAuthenticated]);
+  }, [location.search, fetchPopularTVShows, authenticated]);
   
   // Handle show state change
   const handleShowStateChange = useCallback((event, showId, title, image) => {
     event.stopPropagation(); // Prevent navigation on state change click
-    if (isAuthenticated) {
+    if (authenticated) {
       setAnchorEl(event.currentTarget);
       setCurrentShowId(showId);
       setCurrentTitle(title);
@@ -150,17 +162,17 @@ const PopularTVShows = () => {
     } else {
       navigate('/login'); // Redirect to login if not authenticated
     }
-  }, [isAuthenticated, navigate]);
+  }, [authenticated, navigate]);
 
   const handleMenuClose = (state) => {
-    if (isAuthenticated && currentShowId !== null) {
+    if (authenticated && currentShowId !== null) {
       // Update the state locally
       setShowStates(prevStates => ({
         ...prevStates,
         [currentShowId]: state
       }));
 
-      const user_id = isAuthenticated.id;
+      const user_id = user.id;
 
       // Make the API call to update the state in the backend
       apiClient.post('/api/set_tv_show_state', {

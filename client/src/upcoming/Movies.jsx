@@ -19,10 +19,11 @@ import {
   MenuItem,  
 } from "@mui/material";
 
+import { useAuth } from "../authContext.js";
+
 import "./Movie.css";
 import Navbar from "../navbar/Navbar";
 import FilterComponent from "../components/Filters";
-import useIsAuthenticated from "../redux/authHook";
 import apiClient from "../apiClient";
 
 // Define a function to scale vote average to a star rating
@@ -34,6 +35,7 @@ const getStarRating = (voteAverage) => {
 const movieCache = {};
 
 const UpcomingMovies = () => {
+  const [authenticated, setAuthenticated] = useState(false);
   const [movies, setMovies] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -46,10 +48,20 @@ const UpcomingMovies = () => {
   const [currentTitle, setCurrentTitle] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
 
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens
-  const isAuthenticated = useIsAuthenticated();
+  const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens  
+
+  // Check local storage for user session
+  useEffect(() => {
+    const sessionData = localStorage.getItem('user');
+    if (sessionData) {      
+      setAuthenticated(true);      
+    } else {
+      setAuthenticated(false);
+    }
+  }, []);
 
   const fetchUpcomingMovies = useCallback(async (page, filters) => {
     const cacheKey = `${page}-${JSON.stringify(filters)}`;
@@ -80,8 +92,8 @@ const UpcomingMovies = () => {
   }, []);
 
   const fetchMovieStates = useCallback(async () => {
-    if (isAuthenticated) {
-      const user_id = isAuthenticated.id;
+    if (authenticated) {
+      const user_id = user.id;
       try {
         const response = await apiClient.get(`/api/get_movie_states/${user_id}`);
         const states = response.data.reduce((acc, item) => {
@@ -93,7 +105,7 @@ const UpcomingMovies = () => {
         console.error("Error fetching movie states:", error);
       }
     }
-  }, [isAuthenticated]);
+  }, [authenticated]);
 
   const handleCardClick = useCallback((movieId) => {
     navigate(`/movie/${movieId}`);
@@ -119,7 +131,7 @@ const UpcomingMovies = () => {
 
   const handleMovieStateChange = useCallback((event, movieId, title, image) => {
     event.stopPropagation(); // Prevent navigation on state change click
-    if (isAuthenticated) {
+    if (authenticated) {
       setAnchorEl(event.currentTarget);
       setCurrentMovieId(movieId);
       setCurrentTitle(title);
@@ -127,17 +139,17 @@ const UpcomingMovies = () => {
     } else {
       navigate('/login'); // Redirect to login if not authenticated
     }
-  }, [isAuthenticated, navigate]);
+  }, [authenticated, navigate]);
 
   const handleMenuClose = (state) => {
-    if (isAuthenticated && currentMovieId !== null) {
+    if (authenticated && currentMovieId !== null) {
       // Update the state locally
       setMovieStates(prevStates => ({
         ...prevStates,
         [currentMovieId]: state
       }));
 
-      const user_id = isAuthenticated.id;
+      const user_id = user.id;
 
       // Make the API call to update the state in the backend
       apiClient.post('/api/set_movie_state', {

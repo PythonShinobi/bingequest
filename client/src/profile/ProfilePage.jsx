@@ -15,12 +15,15 @@ import {
   Button
 } from '@mui/material';
 
+import { useAuth } from '../authContext';
+
 import './ProfilePage.css';
 import Navbar from '../navbar/Navbar';
-import getUser from '../redux/getUser';
 import apiClient from '../apiClient';
 
 const ProfilePage = () => {
+  const { user } = useAuth();
+
   const [tabValue, setTabValue] = useState(0);
   const [watchListTab, setWatchListTab] = useState(0);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -38,7 +41,6 @@ const ProfilePage = () => {
   const [droppedTVShows, setDroppedTVShows] = useState([]);
 
   const navigate = useNavigate();  
-  const user = getUser(); // Assuming this hook gets the authenticated user
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));  
   const isVerySmallScreen = useMediaQuery("(max-width:360px)");
