@@ -57,7 +57,8 @@ const Navbar = () => {
   const handleLogout = async () => {
     try {
       const status = await logout();      
-      if (status === 200) {        
+      if (status === 200) {
+        localStorage.removeItem('user'); // Remove cached user data     
         setAuthenticated(false); // Update state to reflect user is logged out
         setUsername(''); // Clear the username state
         navigate('/'); // Redirect the user to the home page
