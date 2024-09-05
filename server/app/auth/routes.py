@@ -62,7 +62,7 @@ def register():
         session_id = generate_secure_session_id()
         session['session_id'] = session_id
 
-        response = make_response(jsonify({"session_id": session_id, "username": new_user.username}))
+        response = make_response(jsonify({"session_id": session_id, "username": new_user.username, "id": new_user.id}))
         return response, 201
     except Exception as e:
         print(f"Error during registration: {e}")
@@ -99,7 +99,7 @@ def login():
     session_id = generate_secure_session_id()
     session['session_id'] = session_id
 
-    response = jsonify({"session_id": session_id, "username": user.username})
+    response = jsonify({"session_id": session_id, "username": user.username, "id": user.id})
     return response, 200
 
 @bp.route('/logout', methods=['POST'])
