@@ -64,14 +64,12 @@ const Navbar = () => {
         navigate('/'); // Redirect the user to the home page
       } else {
         // Handle any unexpected status codes (this should be covered in the logout function)
-        console.error('Failed to log out.');
-        alert('An error occurred while trying to log out. Please try again.');
+        console.error('Failed to log out.');        
       }
     } catch (error) {
       // Error handling if the logout fails
       console.error('Error logging out:', error);
-      // Display an error message or take appropriate action
-      alert('An error occurred while trying to log out. Please try again.');
+      // Display an error message or take appropriate action      
     }
   };
 

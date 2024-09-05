@@ -43,7 +43,6 @@ export const AuthProvider = ({ children }) => {
       if (response.status === 200) {
         setUser(response.data);
         localStorage.setItem('user', JSON.stringify(response.data)); // Cache user data
-        checkSession();  // Immediately check session after login
         setErr(""); // Clear any previous errors
         return response.status; // Return the status code
       } else {
@@ -78,10 +77,8 @@ export const AuthProvider = ({ children }) => {
   // Log out a user
   const logout = async () => {
     try {
-      const response = await apiClient.post('/api/logout');      
-      if (response.status === 200) {
-        localStorage.removeItem('user'); // Remove cached user data
-        checkSession();  // Immediately check session after logout
+      const response = await apiClient.get('/api/logout');
+      if (response.status === 200) {                
         setErr(""); // Clear any previous errors        
         return response.status;   
       } else {
