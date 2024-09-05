@@ -1,10 +1,16 @@
+import secrets
 from flask import jsonify, request, make_response, session
-from flask_login import login_user, current_user, logout_user, login_required
+from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from app import db, login_manager
 from app.auth import bp
 from app.models import User
+
+def generate_secure_session_id():
+    # Generate a 64-bit (16-byte) random session ID
+    token = secrets.token_hex(16)
+    return token
 
 @login_manager.user_loader  # Reload a user object based on the user ID stored in the session.
 def load_user(user_id):
@@ -51,12 +57,16 @@ def register():
         db.session.add(new_user)
         db.session.commit()
         login_user(new_user, remember=True)
+
+        # Generate a secure session ID and store session details on the server side
+        session_id = generate_secure_session_id()
+        session['session_id'] = session_id
+
+        response = make_response(jsonify({"session_id": session_id, "username": new_user.username}))
+        return response, 201
     except Exception as e:
         print(f"Error during registration: {e}")
-        return jsonify({"message": "Server error during registration"}), 500
-
-    response = make_response(jsonify({"message": "Registration successful✅", "id": new_user.id, "username": new_user.username, "email": new_user.email}))
-    return response, 201
+        return jsonify({"message": "Server error during registration"}), 500    
 
 # Logs in a user
 @bp.route('/login', methods=['POST'])
@@ -85,14 +95,20 @@ def login():
     
     login_user(user, remember=True)
 
-    response = jsonify({"message": "Login successful", "id": user.id, "username": user.username, "email": user.email})
+    # Generate a secure session ID for this user and store session details on the server
+    session_id = generate_secure_session_id()
+    session['session_id'] = session_id
+
+    response = jsonify({"session_id": session_id, "username": user.username})
     return response, 200
 
 @bp.route('/logout', methods=['POST'])
 @login_required
 def logout():
     logout_user()
-    session.clear()  # Explicitly clear the session
+
+    # Clear the session ID on logout
+    session.pop('session_id', None)
+
     response = make_response(jsonify({'message': 'Logged out successfully'}))
-    response.set_cookie('session', '', expires=0)  # Clear the session cookie
     return response, 200
