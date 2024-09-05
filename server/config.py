@@ -19,10 +19,13 @@ class Config:
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)  # Sessions will persist for 7 days
     SESSION_COOKIE_SAMESITE = 'None'
     SESSION_COOKIE_SECURE = True  # Set to True in production
+
+    # Remember me settings
     REMEMBER_COOKIE_HTTPONLY = True
     REMEMBER_COOKIE_DURATION = timedelta(days=30)  # Set remember me cookie duration to 1 minute
     SESSION_COOKIE_DOMAIN = ".developer-path.org"  # This ensures the cookie is available on all subdomains
     REMEMBER_COOKIE_SECURE = True  # Set to True in production        
+    REMEMBER_COOKIE_SAMESITE = 'None'  # Allow cookies to be sent with cross-site requests
 
     # Email settings
     MAIL_SERVER = os.getenv("MAIL_SERVER", "smtp.gmail.com")
