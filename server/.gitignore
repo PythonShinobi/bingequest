@@ -100,3 +100,6 @@ base/
 
 # log directory
 logs/
+
+# database
+*.db

@@ -17,12 +17,28 @@ def load_user(user_id):
     user = db.get_or_404(User, user_id)
     return user
 
+# New function to initialize session for first-time visitors
+@bp.before_app_request
+def init_session():
+    # Check if a session ID exists; if not, generate a new one
+    if 'session_id' not in session:
+        session_id = generate_secure_session_id()
+        session['session_id'] = session_id
+        print(f"New session ID generated: {session_id}")
+
 @bp.route('/check-session', methods=['GET'])
 def check_session():
     if current_user.is_authenticated:
-        return jsonify({"message": "Session is active", "username": current_user.username}), 200
+        return jsonify({
+            "message": "Session is active",
+            "username": current_user.username,
+            "session_id": session.get('session_id')
+        }), 200
     else:
-        return jsonify({"message": "No active session"}), 401
+        return jsonify({
+            "message": "No active session",
+            "session_id": session.get('session_id')
+        }), 401
 
 # Register new users into the User database
 @bp.route('/register', methods=['POST'])
@@ -58,11 +74,7 @@ def register():
         db.session.commit()
         login_user(new_user, remember=True)
 
-        # Generate a secure session ID and store session details on the server side
-        session_id = generate_secure_session_id()
-        session['session_id'] = session_id
-
-        response = make_response(jsonify({"session_id": session_id, "username": new_user.username, "id": new_user.id}))
+        response = make_response(jsonify({"session_id": session['session_id'], "username": new_user.username, "id": new_user.id}))
         return response, 201
     except Exception as e:
         print(f"Error during registration: {e}")
@@ -95,11 +107,7 @@ def login():
     
     login_user(user, remember=True)
 
-    # Generate a secure session ID for this user and store session details on the server
-    session_id = generate_secure_session_id()
-    session['session_id'] = session_id
-
-    response = jsonify({"session_id": session_id, "username": user.username, "id": user.id})
+    response = jsonify({"session_id": session['session_id'], "username": user.username, "id": user.id})
     return response, 200
 
 @bp.route('/logout', methods=['POST'])
