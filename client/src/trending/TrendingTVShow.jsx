@@ -19,7 +19,7 @@ import {
   MenuItem
 } from "@mui/material";
 
-import { useAuth } from "../authContext.js";
+import { user, isAuthenticated } from "../context/AuthContext.jsx";
 
 import "./TrendingTVShows.css";
 import Navbar from "../navbar/Navbar";
@@ -33,8 +33,7 @@ const getStarRating = (voteAverage) => {
 // Cache object to store TV show data
 const showCache = {};
 
-const TrendingTVShows = () => {
-  const [authenticated, setAuthenticated] = useState(false);
+const TrendingTVShows = () => {  
   const [shows, setShows] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -45,21 +44,10 @@ const TrendingTVShows = () => {
   const [currentShowId, setCurrentShowId] = useState(null); // Current show id for categorization
   const [currentTitle, setCurrentTitle] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
-
-  const { user } = useAuth();
+  
   const navigate = useNavigate();
   const location = useLocation();
   const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens
-
-  // Check local storage for user session
-  useEffect(() => {
-    const sessionData = localStorage.getItem('user');
-    if (sessionData) {      
-      setAuthenticated(true);      
-    } else {
-      setAuthenticated(false);
-    }
-  }, []);
 
   // Fetch trending TV shows with caching
   const fetchTrendingTVShows = useCallback(async (page) => {
@@ -90,9 +78,9 @@ const TrendingTVShows = () => {
     }
   }, []);
 
-  // Fetch TV show states if authenticated
+  // Fetch TV show states if isAuthenticated
   const fetchShowStates = useCallback(async () => {
-    if (authenticated) {
+    if (isAuthenticated) {
       const user_id = user.id;
       try {
         const response = await apiClient.get(`/api/get_tv_show_states/${user_id}`);
@@ -105,7 +93,7 @@ const TrendingTVShows = () => {
         console.error("Error fetching TV show states:", error);
       }
     }
-  }, [authenticated]);
+  }, [isAuthenticated]);
 
   // Handle page change and update URL
   const handlePageChange = (event, newPage) => {
@@ -121,19 +109,19 @@ const TrendingTVShows = () => {
   // Handle TV show state change
   const handleShowStateChange = useCallback((event, showId, title, image) => {
     event.stopPropagation(); // Prevent navigation on state change click
-    if (authenticated) {
+    if (isAuthenticated) {
       setAnchorEl(event.currentTarget);
       setCurrentShowId(showId);
       setCurrentTitle(title);
       setCurrentImage(image);
     } else {
-      navigate('/login'); // Redirect to login if not authenticated
+      navigate('/login'); // Redirect to login if not isAuthenticated
     }
-  }, [authenticated, navigate]);
+  }, [isAuthenticated, navigate]);
 
   // Handle menu close and update show state
   const handleMenuClose = (state) => {
-    if (authenticated && currentShowId !== null) {
+    if (isAuthenticated && currentShowId !== null) {
       // Update the state locally
       setShowStates(prevStates => ({
         ...prevStates,

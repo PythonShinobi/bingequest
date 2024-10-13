@@ -1,122 +1,105 @@
-import secrets
-from flask import jsonify, request, make_response, session
-from flask_login import login_user, logout_user, login_required, current_user
-from werkzeug.security import generate_password_hash, check_password_hash
+import uuid
+from datetime import datetime, timedelta
+from flask import request, jsonify
 
 from app import db, login_manager
 from app.auth import bp
-from app.models import User
+from app.models import User, Session
 
-def generate_secure_session_id():
-    # Generate a 64-bit (16-byte) random session ID
-    token = secrets.token_hex(16)
-    return token
-
-@login_manager.user_loader  # Reload a user object based on the user ID stored in the session.
+# User loader function
+@login_manager.user_loader
 def load_user(user_id):
-    user = db.get_or_404(User, user_id)
-    return user
+    return User.query.get(int(user_id))
 
-# New function to initialize session for first-time visitors
-@bp.before_app_request
-def init_session():
-    # Check if a session ID exists; if not, generate a new one
-    if 'session_id' not in session:
-        session_id = generate_secure_session_id()
-        session['session_id'] = session_id
-        print(f"New session ID generated: {session_id}")
-
-@bp.route('/check-session', methods=['GET'])
-def check_session():
-    if current_user.is_authenticated:
-        return jsonify({
-            "message": "Session is active",
-            "username": current_user.username,
-            "session_id": session.get('session_id')
-        }), 200
-    else:
-        return jsonify({
-            "message": "No active session",
-            "session_id": session.get('session_id')
-        }), 401
-
-# Register new users into the User database
 @bp.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
-    if not data:
-        return jsonify({"message": "Invalid data"}), 400
 
-    username = data.get("username")
-    email = data.get("email")
-    password = data.get("password")
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
 
-    # Check if the username is already present in the database.
-    username_check = db.session.execute(db.select(User).where(User.username == username))
-    existing_username = username_check.scalar()
+    if not username or not email or not password:
+        return jsonify({"error": "Missing required fields"}), 400
+    
+    existing_username = User.query.filter(User.username == username).first()
     if existing_username:
-        return jsonify({"message": "Username already taken"}), 400
+        return jsonify({"error": "Username already exists"}), 400
 
-    # Check if the email is already present in the database.
-    email_check = db.session.execute(db.select(User).where(User.email == email))
-    existing_email = email_check.scalar()
+    existing_email = User.query.filter(User.email == email).first()
     if existing_email:
-        return jsonify({"message": "Email already registered"}), 400
+        return jsonify({"error": "Email already exists"}), 400
 
-    try:
-        hashed_password = generate_password_hash(password, method='pbkdf2:sha256', salt_length=8)
-        new_user = User(
-            username=username,
-            email=email,
-            password=hashed_password
-        )
-        db.session.add(new_user)
-        db.session.commit()
-        login_user(new_user, remember=True)
+    # Register new user
+    new_user = User(username=username, email=email)
+    new_user.set_password(password)
 
-        response = make_response(jsonify({"session_id": session['session_id'], "username": new_user.username, "id": new_user.id}))
-        return response, 201
-    except Exception as e:
-        print(f"Error during registration: {e}")
-        return jsonify({"message": "Server error during registration"}), 500    
+    db.session.add(new_user)
+    db.session.commit()   
 
-# Logs in a user
+    # Create a session token
+    session_token = str(uuid.uuid4())
+    expires_at = datetime.now() + timedelta(days=1)  # Set session expiration (1 day)
+
+    # Store session in the database
+    new_session = Session(user_id=new_user.id, session_token=session_token, expires_at=expires_at)
+    db.session.add(new_session)
+    db.session.commit()
+
+    return jsonify({
+        "message": "Registration successful",
+        "session_token": session_token,
+        "expires_at": expires_at.isoformat(),  # Send expiration date
+        "user": { "id": new_user.id, "username": new_user.username }
+    }), 201
+
 @bp.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    if not data:
-        return jsonify({"message": "Invalid data"}), 400
-
-    username = data.get('username')
-    password = data.get('password')   
-
-    if not username or not password:
-        return jsonify({"message": "Username and password are required"}), 400
-
-    try:
-        result = db.session.execute(db.select(User).where(User.username == username))
-        user = result.scalar()
-    except Exception as e:
-        return jsonify({"message": "An error occurred while fetching the user", "error": str(e)}), 500
     
-    if not user:
-        return jsonify({"message": "User does not exist"}), 401
+    email = data.get('email')
+    password = data.get('password')
 
-    if not check_password_hash(user.password, password):        
-        return jsonify({"message": "Invalid password"}), 401
+    # Find user by email
+    user = User.query.filter_by(email=email).first()
     
-    login_user(user, remember=True)
+    # Validate user credentials
+    if user and user.check_password(password):
+        # Check if a session already exists for this user
+        existing_session = Session.query.filter_by(user_id=user.id).first()
+        
+        if existing_session:
+            # If a session exists, use the existing session token
+            session_token = existing_session.session_token
+            expires_at = existing_session.expires_at
+        else:
+            # If no session exists, create a new session token and store it
+            session_token = str(uuid.uuid4())
+            expires_at = datetime.now() + timedelta(days=1)  # Session expires in 1 day
 
-    response = jsonify({"session_id": session['session_id'], "username": user.username, "id": user.id})
-    return response, 200
+            new_session = Session(user_id=user.id, session_token=session_token, expires_at=expires_at)
+            db.session.add(new_session)
+            db.session.commit()
+
+        return jsonify({
+            "message": "Login successful",
+            "session_token": session_token,
+            "expires_at": expires_at.isoformat(),
+            "user": { "id": user.id, "username": user.username }
+        }), 200        
+
+    # If credentials are invalid, return an error
+    return jsonify({"error": "Invalid email or password"}), 401
 
 @bp.route('/logout', methods=['POST'])
-@login_required
-def logout():
-    logout_user()
+def logout():    
+    # Get the session token from the request body
+    data = request.get_json()  # Get the JSON data sent in the request
+    session_token = data.get('session_token')    
 
-    # Clear the session ID on logout
-    session.pop('session_id', None)
+    # Delete the session from the database.
+    if session_token:
+        Session.query.filter_by(session_token=session_token).delete()
+        db.session.commit()    
 
-    response = make_response(jsonify({'message': 'Logged out successfully'}))
-    return response, 200
+    return jsonify({"message": "Logout successful"}), 200

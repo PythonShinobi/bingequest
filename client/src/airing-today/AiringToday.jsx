@@ -19,7 +19,7 @@ import {
   MenuItem
 } from "@mui/material";
 
-import { useAuth } from "../authContext.js";
+import { useAuth } from "../";
 
 import "./AiringToday.css";
 import Navbar from "../navbar/Navbar";

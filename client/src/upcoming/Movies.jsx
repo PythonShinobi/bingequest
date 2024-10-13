@@ -19,7 +19,7 @@ import {
   MenuItem,  
 } from "@mui/material";
 
-import { useAuth } from "../authContext.js";
+import { user, isAuthenticated } from "../context/AuthContext.jsx";
 
 import "./Movie.css";
 import Navbar from "../navbar/Navbar";
@@ -35,7 +35,6 @@ const getStarRating = (voteAverage) => {
 const movieCache = {};
 
 const UpcomingMovies = () => {
-  const [authenticated, setAuthenticated] = useState(false);
   const [movies, setMovies] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -48,20 +47,9 @@ const UpcomingMovies = () => {
   const [currentTitle, setCurrentTitle] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
 
-  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens  
-
-  // Check local storage for user session
-  useEffect(() => {
-    const sessionData = localStorage.getItem('user');
-    if (sessionData) {      
-      setAuthenticated(true);      
-    } else {
-      setAuthenticated(false);
-    }
-  }, []);
 
   const fetchUpcomingMovies = useCallback(async (page, filters) => {
     const cacheKey = `${page}-${JSON.stringify(filters)}`;
@@ -92,7 +80,7 @@ const UpcomingMovies = () => {
   }, []);
 
   const fetchMovieStates = useCallback(async () => {
-    if (authenticated) {
+    if (isAuthenticated) {
       const user_id = user.id;
       try {
         const response = await apiClient.get(`/api/get_movie_states/${user_id}`);
@@ -105,7 +93,7 @@ const UpcomingMovies = () => {
         console.error("Error fetching movie states:", error);
       }
     }
-  }, [authenticated]);
+  }, [isAuthenticated]);
 
   const handleCardClick = useCallback((movieId) => {
     navigate(`/movie/${movieId}`);
@@ -131,18 +119,18 @@ const UpcomingMovies = () => {
 
   const handleMovieStateChange = useCallback((event, movieId, title, image) => {
     event.stopPropagation(); // Prevent navigation on state change click
-    if (authenticated) {
+    if (isAuthenticated) {
       setAnchorEl(event.currentTarget);
       setCurrentMovieId(movieId);
       setCurrentTitle(title);
       setCurrentImage(image);
     } else {
-      navigate('/login'); // Redirect to login if not authenticated
+      navigate('/login'); // Redirect to login if not isAuthenticated
     }
-  }, [authenticated, navigate]);
+  }, [isAuthenticated, navigate]);
 
   const handleMenuClose = (state) => {
-    if (authenticated && currentMovieId !== null) {
+    if (isAuthenticated && currentMovieId !== null) {
       // Update the state locally
       setMovieStates(prevStates => ({
         ...prevStates,
@@ -188,7 +176,7 @@ const UpcomingMovies = () => {
     // Fetch movies from cache or API
     fetchUpcomingMovies(page, filters);
 
-    // Fetch movie states if authenticated
+    // Fetch movie states if isAuthenticated
     fetchMovieStates();
 
     window.scrollTo(0, 0);

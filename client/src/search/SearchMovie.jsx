@@ -25,7 +25,7 @@ import {
   MenuItem,
 } from "@mui/material";
 
-import { useAuth } from "../authContext.js";
+import { user, isAuthenticated } from "../context/AuthContext.jsx";
 
 import "./SearchMovie.css";
 import Navbar from "../navbar/Navbar";
@@ -39,7 +39,6 @@ const getStarRating = (voteAverage) => {
 const searchCache = {};
 
 const SearchMovie = () => {
-  const [authenticated, setAuthenticated] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -53,19 +52,8 @@ const SearchMovie = () => {
   const [currentTitle, setCurrentTitle] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
 
-  const { user } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-
-  // Check local storage for user session
-  useEffect(() => {
-    const sessionData = localStorage.getItem('user');
-    if (sessionData) {      
-      setAuthenticated(true);      
-    } else {
-      setAuthenticated(false);
-    }
-  }, []);
+  const location = useLocation();  
 
   const fetchSearchResults = useCallback(async (query, page) => {
     const cacheKey = `${query}-${page}`;
@@ -96,7 +84,7 @@ const SearchMovie = () => {
   }, []);
 
   const fetchMovieStates = useCallback(async () => {
-    if (authenticated) {
+    if (isAuthenticated) {
       const user_id = user.id;
       try {
         const response = await apiClient.get(`/api/get_movie_states/${user_id}`);
@@ -109,7 +97,7 @@ const SearchMovie = () => {
         console.error("Error fetching movie states:", error);
       }
     }
-  }, [authenticated]);
+  }, [isAuthenticated]);
 
   const handleSearch = async (e, page = 1) => {
     if (e) e.preventDefault();
@@ -132,7 +120,7 @@ const SearchMovie = () => {
 
   const handleMovieStateChange = useCallback((event, movieId, title, image) => {
     event.stopPropagation();
-    if (authenticated) {
+    if (isAuthenticated) {
       setAnchorEl(event.currentTarget);
       setCurrentMovieId(movieId);
       setCurrentTitle(title);
@@ -140,10 +128,10 @@ const SearchMovie = () => {
     } else {
       navigate('/login');
     }
-  }, [authenticated, navigate]);
+  }, [isAuthenticated, navigate]);
 
   const handleMenuClose = (state) => {
-    if (authenticated && currentMovieId !== null) {
+    if (isAuthenticated && currentMovieId !== null) {
       setMovieStates(prevStates => ({
         ...prevStates,
         [currentMovieId]: state
@@ -189,10 +177,10 @@ const SearchMovie = () => {
       setLoading(false);
     }
 
-    if (authenticated) {
+    if (isAuthenticated) {
       fetchMovieStates();
     }
-  }, [location.search, fetchSearchResults, fetchMovieStates, authenticated]);
+  }, [location.search, fetchSearchResults, fetchMovieStates, isAuthenticated]);
 
   const memoizedResults = useMemo(() => results, [results]);
 

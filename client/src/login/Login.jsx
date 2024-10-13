@@ -3,38 +3,42 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import "./Login.css";
-import { useAuth } from "../authContext"; // Import the useAuth hook
+import { AuthContext } from '../context/AuthContext'; // Import your AuthContext
 import Navbar from "../navbar/Navbar";
 import Form from "../components/Form";
 
+import apiClient from "../apiClient.js";
+
 const Login = () => {
-  const { login, err } = useAuth(); // Get the login and err function from AuthContext
-  const [success, setSuccess] = useState(""); // State variable for success message
-  const [error, setError] = useState("");
-
+  const { login } = useContext(AuthContext);  
   const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = useState(''); // State for error message
 
-  const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent default form submission behavior.
-
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    
+    const form = event.target;
+    const data = new FormData(form);
+    const loginData = {
+      email: data.get('email'),
+      password: data.get('password'),
+    };
+  
     try {
-      const username = e.target.username.value;
-      const password = e.target.password.value;
+      const response = await apiClient.post('/api/login', loginData);
+    
+      const { user, session_token } = response.data;
 
-      // Use the login function from AuthContext to log in
-      const status = await login(username, password);      
-      if (status === 200) {
-        setSuccess("Login successful"); // Set success message
-        setTimeout(() => { navigate("/"); }, 1000); // Redirect after 1 second
-        setError(""); // Clear any previous errors
-      } else {
-        setError(err);
-        alert('An error occurred while trying to log in. Please try again.');
-      }
+      const expires = new Date(response.data.expires_at).toUTCString();
+      document.cookie = `session_token=${session_token}; path=/; expires=${expires}; SameSite=Strict; Secure;`;
+    
+      login(user);      
+    
+      navigate('/');
+      setErrorMessage(''); // Clear error message on successful login
     } catch (error) {
-      console.error(`An unexpected error occurred: ${error.message}`);
-      setError(err || error.message);
-      alert('An error occurred while trying to log in. Please try again.');
+      const errorMsg = error.response?.data?.error || 'An error occurred during login.';
+      setErrorMessage(errorMsg); // Set error message      
     }
   };
 
@@ -43,7 +47,7 @@ const Login = () => {
       <Navbar />      
       <Form 
         isLogin={true} 
-        errorMessage={error} 
+        errorMessage={errorMessage} 
         successMessage={success} 
         onSubmit={handleSubmit} 
       />

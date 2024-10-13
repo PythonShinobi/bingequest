@@ -25,7 +25,7 @@ import {
   MenuItem,
 } from "@mui/material";
 
-import { useAuth } from "../authContext.js";
+import { user, isAuthenticated } from "../context/AuthContext.jsx";
 
 import "./SearchTVShow.css";
 import Navbar from "../navbar/Navbar";
@@ -38,8 +38,7 @@ const getStarRating = (voteAverage) => {
 
 const searchCache = {};
 
-const SearchTVShow = () => {
-  const [authenticated, setAuthenticated] = useState(false);
+const SearchTVShow = () => {  
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -53,7 +52,6 @@ const SearchTVShow = () => {
   const [currentTitle, setCurrentTitle] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
 
-  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -86,7 +84,7 @@ const SearchTVShow = () => {
   }, []);
 
   const fetchTvShowStates = useCallback(async () => {
-    if (authenticated) {
+    if (isAuthenticated) {
       const user_id = user.id;
       try {
         const response = await apiClient.get(`/api/get_tv_show_states/${user_id}`);
@@ -99,7 +97,7 @@ const SearchTVShow = () => {
         console.error("Error fetching TV show states:", error);
       }
     }
-  }, [authenticated]);
+  }, [isAuthenticated]);
 
   const handleSearch = async (e, page = 1) => {
     if (e) e.preventDefault();
@@ -121,7 +119,7 @@ const SearchTVShow = () => {
 
   const handleTvShowStateChange = useCallback((event, tvShowId, title, image) => {
     event.stopPropagation();
-    if (authenticated) {
+    if (isAuthenticated) {
       setAnchorEl(event.currentTarget);
       setCurrentTvShowId(tvShowId);
       setCurrentTitle(title);
@@ -129,10 +127,10 @@ const SearchTVShow = () => {
     } else {
       navigate('/login');
     }
-  }, [authenticated, navigate]);
+  }, [isAuthenticated, navigate]);
 
   const handleMenuClose = (state) => {
-    if (authenticated && currentTvShowId !== null) {
+    if (isAuthenticated && currentTvShowId !== null) {
       setTvShowStates(prevStates => ({
         ...prevStates,
         [currentTvShowId]: state
@@ -178,10 +176,10 @@ const SearchTVShow = () => {
       setLoading(false);
     }
 
-    if (authenticated) {
+    if (isAuthenticated) {
       fetchTvShowStates();
     }
-  }, [location.search, fetchSearchResults, fetchTvShowStates, authenticated]);
+  }, [location.search, fetchSearchResults, fetchTvShowStates, isAuthenticated]);
 
   const memoizedResults = useMemo(() => results, [results]);
 

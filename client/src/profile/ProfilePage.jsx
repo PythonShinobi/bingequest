@@ -15,15 +15,13 @@ import {
   Button
 } from '@mui/material';
 
-import { useAuth } from '../authContext';
+import { user } from "../context/AuthContext.jsx";
 
 import './ProfilePage.css';
 import Navbar from '../navbar/Navbar';
 import apiClient from '../apiClient';
 
-const ProfilePage = () => {
-  const { user } = useAuth();
-
+const ProfilePage = () => {  
   const [tabValue, setTabValue] = useState(0);
   const [watchListTab, setWatchListTab] = useState(0);
   const [searchParams, setSearchParams] = useSearchParams();
