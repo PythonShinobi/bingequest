@@ -2,7 +2,7 @@
 import React, { memo } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
-import { AuthProvider } from './authContext';
+import { AuthProvider } from './context/AuthContext.jsx';
 
 import Home from "./home/Home"
 import Footer from './footer/Footer';
@@ -27,7 +27,8 @@ import ContactPage from './contact/Contact';
 import About from './about/About';
 import CelebrityDetails from './details/PersonDetails';
 
-import PrivateRoute from './PrivateRoute';
+import ProtectedRoute from './components/ProtectedRoute'; 
+import ProtectedProfileRoute from './components/ProtectedProfileRoute'; // Import th
 
 // Memoized components
 const MemoizedComponents = {
@@ -61,8 +62,8 @@ const App = () => {
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
           <Routes>
             <Route path='/' element={<MemoizedComponents.Home />} />
-            <Route path='/register' element={<MemoizedComponents.Register />} />
-            <Route path='/login' element={<MemoizedComponents.Login />} />
+            <Route path='/register' element={<ProtectedRoute> <MemoizedComponents.Register /> </ProtectedRoute> } />
+            <Route path='/login' element={<ProtectedRoute> <MemoizedComponents.Login /> </ProtectedRoute>} />
             <Route path='/contact' element={<MemoizedComponents.ContactPage />} />
             <Route path='/about' element={<MemoizedComponents.About />} />
             <Route path='/movies/popular' element={<MemoizedComponents.PopularMovies />} />
@@ -81,7 +82,7 @@ const App = () => {
             <Route path="/people/:personId" element={<MemoizedComponents.CelebrityDetails />} />
             <Route
               path='/profile'
-              element={<PrivateRoute element={MemoizedComponents.ProfilePage} />}
+              element={<ProtectedProfileRoute> <MemoizedComponents.ProfilePage /> </ProtectedProfileRoute>}
             />
             <Route path='*' element={<MemoizedComponents.PageNotFound />} />
           </Routes>
