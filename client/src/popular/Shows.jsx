@@ -19,7 +19,7 @@ import {
   MenuItem,  
 } from "@mui/material";
 
-import { useAuth } from "../";
+import { user, isAuthenticated } from "../context/AuthContext.jsx";
 
 import "./Shows.css";
 import Navbar from "../navbar/Navbar";
@@ -34,8 +34,7 @@ const getStarRating = (voteAverage) => {
 // Cache object to store show data
 const showCache = {};
 
-const PopularTVShows = () => {
-  const [authenticated, setAuthenticated] = useState(false);
+const PopularTVShows = () => {  
   const [shows, setShows] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -52,16 +51,6 @@ const PopularTVShows = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isSmallScreen = useMediaQuery('(max-width:600px)'); // Example breakpoint for small screens  
-
-  // Check local storage for user session
-  useEffect(() => {
-    const sessionData = localStorage.getItem('user');
-    if (sessionData) {      
-      setAuthenticated(true);      
-    } else {
-      setAuthenticated(false);
-    }
-  }, []);
 
   const fetchPopularTVShows = useCallback(async (page, filters) => {
     const cacheKey = `${page}-${JSON.stringify(filters)}`;
@@ -132,8 +121,8 @@ const PopularTVShows = () => {
     // Fetch shows from cache or API
     fetchPopularTVShows(page, filters);
 
-    // Fetch show states if authenticated
-    if (authenticated) {
+    // Fetch show states if isAuthenticated
+    if (isAuthenticated) {
       const user_id = user.id;
       apiClient.get(`/api/get_tv_show_states/${user_id}`)
         .then(response => {
@@ -149,23 +138,23 @@ const PopularTVShows = () => {
     }
 
     window.scrollTo(0, 0);
-  }, [location.search, fetchPopularTVShows, authenticated]);
+  }, [location.search, fetchPopularTVShows, isAuthenticated]);
   
   // Handle show state change
   const handleShowStateChange = useCallback((event, showId, title, image) => {
     event.stopPropagation(); // Prevent navigation on state change click
-    if (authenticated) {
+    if (isAuthenticated) {
       setAnchorEl(event.currentTarget);
       setCurrentShowId(showId);
       setCurrentTitle(title);
       setCurrentImage(image);
     } else {
-      navigate('/login'); // Redirect to login if not authenticated
+      navigate('/login'); // Redirect to login if not isAuthenticated
     }
-  }, [authenticated, navigate]);
+  }, [isAuthenticated, navigate]);
 
   const handleMenuClose = (state) => {
-    if (authenticated && currentShowId !== null) {
+    if (isAuthenticated && currentShowId !== null) {
       // Update the state locally
       setShowStates(prevStates => ({
         ...prevStates,
