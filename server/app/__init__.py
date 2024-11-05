@@ -35,7 +35,7 @@ def create_app(config=Config):
     # Initialize CORS with your frontend URL
     CORS(flask_app, resources={r"/*": {"origins": flask_app.config["FRONTEND_ENDPOINT"], "supports_credentials": True}})
 
-    # Register the authentication blueprint.
+    # Register the authentication blueprint
     from app.auth import bp as auth_bp
     flask_app.register_blueprint(auth_bp, url_prefix="/api")
 
