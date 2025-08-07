@@ -1,5 +1,5 @@
 # Server configuration
-SECRET_KEY="t8hrNO6ibFODgZWxhunyhQ"
+SECRET_KEY="kjhkhkhkhkhklhkhkh"
 FRONTEND_ENDPOINT="<FRONTEND_URL>"
 
 # Database configuration
